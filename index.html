@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ELE Tracker</title>
+<meta name="theme-color" content="#f8fafc" id="metaThemeColor">
+<meta name="app-version" content="0.1.0-phase0">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f8fafc; --panel: #ffffff;
+    --ink: #0f172a; --ink-soft: #475569; --ink-faint: #94a3b8;
+    --line: #e2e8f0; --line-soft: #f1f5f9;
+    --blue: #3b82f6; --blue-deep: #1d4ed8;
+    --critical: #ef4444;
+    --radius: 16px; --radius-sm: 10px;
+    --shadow-lift: 0 12px 24px -6px rgba(15, 23, 42, 0.12), 0 4px 10px -4px rgba(15, 23, 42, 0.08);
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --font-ui: 'Space Grotesk', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font-ui); background: var(--paper); color: var(--ink); }
+  .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { width: 100%; max-width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lift); padding: 32px; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .brand img { height: 32px; width: auto; border-radius: 6px; }
+  .brand-name { font-weight: 700; font-size: 15px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--blue); text-transform: uppercase; }
+  h1 { font-size: 22px; margin: 8px 0 4px; }
+  .lede { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; line-height: 1.5; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px; }
+  .field input { width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: var(--font-ui); font-size: 14.5px; }
+  .btn-primary { width: 100%; padding: 12px; border-radius: var(--radius-sm); border: none; background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color: #fff; font-family: var(--font-ui); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: transform 0.15s var(--spring); }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .btn-ghost { padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink); font-family: var(--font-ui); font-weight: 600; font-size: 13.5px; cursor: pointer; }
+  .form-error { color: var(--critical); font-size: 13px; margin: 6px 0 14px; min-height: 1em; }
+  .shell { max-width: 640px; margin: 0 auto; padding: 32px 20px; }
+  .who-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+  .who-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+  .who-row:last-child { border-bottom: none; }
+  .who-row .k { color: var(--ink-faint); }
+  .who-row .v { font-family: var(--font-mono); font-weight: 600; }
+  .test-result { font-family: var(--font-mono); font-size: 12.5px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px; white-space: pre-wrap; word-break: break-word; margin-top: 14px; min-height: 1.5em; max-height: 300px; overflow: auto; }
+  .test-result.ok { border-color: #10b981; }
+  .test-result.fail { border-color: var(--critical); color: var(--critical); }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hidden { display: none !important; }
+  .loader { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div id="initialLoader" class="loader">Loading…</div>
+
+<div id="loginScreen" class="center-screen hidden">
+  <div class="card">
+    <div class="brand"><img src="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg" alt=""><span class="brand-name">CALGAS CAPACITORS</span></div>
+    <div class="eyebrow">ELE Tracker</div>
+    <h1>Sign in</h1>
+    <p class="lede">Same account as Stock Management — sign in once, all three apps recognize you.</p>
+    <form id="loginForm">
+      <div class="field"><label for="loginUsername">Username or email</label><input type="text" id="loginUsername" autocomplete="username" required></div>
+      <div class="field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" autocomplete="current-password" required></div>
+      <div class="form-error" id="loginError"></div>
+      <button type="submit" class="btn-primary" id="loginSubmit">Sign in</button>
+    </form>
+  </div>
+</div>
+
+<div id="appShell" class="shell hidden">
+  <div class="brand"><img src="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg" alt=""><span class="brand-name">CALGAS CAPACITORS</span><span class="eyebrow" style="margin-left:auto">PHASE 0</span></div>
+  <h1>ELE Tracker</h1>
+  <p class="lede">Foundation check — confirms the Sheet, Apps Script, shared login, and Dropdowns tab all round-trip correctly before any stage form gets built.</p>
+
+  <div class="who-card">
+    <div class="who-row"><span class="k">Name</span><span class="v" id="whoName">—</span></div>
+    <div class="who-row"><span class="k">Username</span><span class="v" id="whoUsername">—</span></div>
+    <div class="who-row"><span class="k">Role</span><span class="v" id="whoRole">—</span></div>
+    <div class="who-row"><span class="k">Department</span><span class="v" id="whoDepartment">—</span></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn-primary" id="testConnectionBtn" style="width:auto;padding:12px 20px">Test connection</button>
+    <button class="btn-ghost" id="logoutBtn">Sign out</button>
+  </div>
+  <div id="testResult" class="test-result"></div>
+</div>
+
+<script>
+// Fill in after your first deployment (Deploy > New deployment > Web App).
+const ELE_API_URL = 'https://script.google.com/macros/s/AKfycbwnOBDgyaLOGixNGGfq9mGjDV_DOHc4D8hVjkB83_yH1uQ5Gxd7zKGbQNggMmbtFXM3IQ/exec';
+const STOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwgMLr8mcNt402VpdDNkrrPpa0VuhwLs5xdZAtuJx9Iy_LQcKxXpxCO_mZfbCOGPn6Z/exec';
+
+const state = { session: null };
+
+async function callApi(url, action, params) {
+  params = params || {};
+  const body = Object.assign({ action: action }, params);
+  if (state.session && action !== 'login') body.token = state.session.token;
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Request failed');
+  return json.data;
+}
+function eleApi(action, params) { return callApi(ELE_API_URL, action, params); }
+function stockApi(action, params) { return callApi(STOCK_API_URL, action, params); }
+
+// Same localStorage key every app in this family uses — same GitHub Pages
+// account means same origin, so a session saved by any of them is already
+// visible here with zero extra plumbing.
+function saveSession(session) { state.session = session; localStorage.setItem('stock_session', JSON.stringify(session)); }
+function loadSession() {
+  const raw = localStorage.getItem('stock_session');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch (e) { return null; }
+}
+function clearSession() { state.session = null; localStorage.removeItem('stock_session'); }
+
+function show(id) {
+  ['initialLoader', 'loginScreen', 'appShell'].forEach(function (s) { document.getElementById(s).classList.toggle('hidden', s !== id); });
+}
+
+async function boot() {
+  if (ELE_API_URL.indexOf('PASTE_ELE_TRACKER') === 0) {
+    document.getElementById('initialLoader').textContent = 'ELE_API_URL not configured yet — deploy this project as a Web App and paste the URL in at the top of the script.';
+    return;
+  }
+  const saved = loadSession();
+  if (saved && saved.token) {
+    state.session = saved;
+    try { await enterApp(); return; } catch (err) { clearSession(); }
+  }
+  show('loginScreen');
+}
+
+async function enterApp() {
+  const who = await eleApi('whoami');
+  document.getElementById('whoName').textContent = who.name;
+  document.getElementById('whoUsername').textContent = who.username;
+  document.getElementById('whoRole').textContent = who.role + (who.isAdmin ? ' (full access)' : '');
+  document.getElementById('whoDepartment').textContent = who.department || '—';
+  show('appShell');
+}
+
+document.getElementById('loginForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginSubmit');
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const session = await stockApi('login', {
+      username: document.getElementById('loginUsername').value.trim(),
+      password: document.getElementById('loginPassword').value
+    });
+    saveSession(session);
+    await enterApp();
+  } catch (err) {
+    errEl.textContent = err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function () {
+  clearSession();
+  show('loginScreen');
+});
+
+document.getElementById('testConnectionBtn').addEventListener('click', async function () {
+  const btn = this;
+  const resultEl = document.getElementById('testResult');
+  resultEl.className = 'test-result';
+  btn.disabled = true; btn.textContent = 'Testing…';
+  try {
+    const ping = await eleApi('ping');
+    const who = await eleApi('whoami');
+    const dropdowns = await eleApi('getDropdowns');
+    const listCounts = Object.keys(dropdowns).map(function (k) { return k + ': ' + dropdowns[k].length; }).join('\n  ');
+    resultEl.className = 'test-result ok';
+    resultEl.textContent =
+      '✓ ping — Web App reachable\n  ' + JSON.stringify(ping) + '\n\n' +
+      '✓ whoami — shared session validated against Stock Management\n  ' + JSON.stringify(who) + '\n\n' +
+      '✓ getDropdowns — Dropdowns tab reachable\n  ' + (listCounts || '(no lists have data yet — expected until you populate Dropdowns)');
+  } catch (err) {
+    resultEl.className = 'test-result fail';
+    resultEl.textContent = '✗ ' + err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Test connection';
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function (err) { console.log('SW registration missed', err); });
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
