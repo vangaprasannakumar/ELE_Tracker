@@ -318,6 +318,62 @@
       </form>
     </div>
 
+    <div class="section card hidden" id="shortClearingCard">
+      <h2>Short Clearing</h2>
+      <form id="shortClearingForm">
+        <div class="field"><label for="scMasterBatchNo">Master batch no</label><select id="scMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="scDate">Date</label><input type="date" id="scDate" required></div>
+          <div class="field"><label for="scShift">Shift</label><select id="scShift" required></select></div>
+        </div>
+        <div class="field"><label for="scMcNo">Machine</label><select id="scMcNo" required></select></div>
+
+        <h3>Settings</h3>
+        <div class="field-row">
+          <div class="field"><label for="scClearingVoltageDC">Clearing voltage DC</label><input type="text" id="scClearingVoltageDC"></div>
+          <div class="field"><label for="scClearingVoltageAC">Clearing voltage AC</label><input type="text" id="scClearingVoltageAC"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="scReactorBalancingMFD">Reactor balancing (MFD)</label><input type="text" id="scReactorBalancingMFD"></div>
+          <div class="field"><label for="scClearingTimeSec">Clearing time (sec)</label><input type="text" id="scClearingTimeSec"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="scTand1Khz">Tand@1KHz</label><input type="text" id="scTand1Khz"></div>
+          <div class="field"><label for="scCapToleranceMin">Cap tolerance (-)</label><input type="text" id="scCapToleranceMin"></div>
+        </div>
+        <div class="field"><label for="scCapToleranceMax">Cap tolerance (+)</label><input type="text" id="scCapToleranceMax"></div>
+
+        <h3>Production</h3>
+        <div class="field-row">
+          <div class="field"><label for="scTotalQty">Total qty</label><input type="number" id="scTotalQty" min="0"></div>
+          <div class="field"><label for="scGoodQty">Good qty</label><input type="number" id="scGoodQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="scRejectQty">Reject qty</label><input type="number" id="scRejectQty" min="0"></div>
+          <div class="field"><label for="scDrumsQty">Drums qty</label><input type="number" id="scDrumsQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="scBinsQty">Bins qty</label><input type="number" id="scBinsQty" min="0"></div>
+          <div class="field"><label for="scWeight">Weight</label><input type="text" id="scWeight"></div>
+        </div>
+        <div class="field"><label for="scOperatorName">Operator</label><select id="scOperatorName"></select></div>
+
+        <h3>Testing / Retesting (fill only the rounds that apply)</h3>
+        <div style="overflow-x:auto">
+        <table class="flgrid" style="min-width:640px">
+          <thead><tr><th style="text-align:left">Round</th><th>Date</th><th>Total</th><th>Good</th><th>HV/Burst</th><th>Cap(+)</th><th>Cap(-)</th><th>Tand</th><th>Rej.%</th></tr></thead>
+          <tbody id="scTestingRows"></tbody>
+        </table>
+        </div>
+
+        <div class="field-checkbox" style="margin-top:14px"><input type="checkbox" id="scRetestingStamp"><label for="scRetestingStamp">Retesting stamp applied</label></div>
+        <div class="field"><label for="scRemarks">Remarks</label><input type="text" id="scRemarks"></div>
+
+        <div class="form-error" id="shortClearingError"></div>
+        <button type="submit" class="btn-primary full" id="shortClearingSubmit">Log Short Clearing</button>
+      </form>
+    </div>
+
     <div class="section">
       <div class="toolbar"><h2 style="margin:0">Batches</h2><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
       <table>
