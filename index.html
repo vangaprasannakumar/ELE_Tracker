@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.1.0-phase0">
+<meta name="app-version" content="0.2.0-phase1">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -17,9 +17,10 @@
     --paper: #f8fafc; --panel: #ffffff;
     --ink: #0f172a; --ink-soft: #475569; --ink-faint: #94a3b8;
     --line: #e2e8f0; --line-soft: #f1f5f9;
-    --blue: #3b82f6; --blue-deep: #1d4ed8;
-    --critical: #ef4444;
+    --blue: #3b82f6; --blue-deep: #1d4ed8; --blue-soft: #eff6ff;
+    --critical: #ef4444; --ok: #10b981;
     --radius: 16px; --radius-sm: 10px;
+    --shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
     --shadow-lift: 0 12px 24px -6px rgba(15, 23, 42, 0.12), 0 4px 10px -4px rgba(15, 23, 42, 0.08);
     --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --font-ui: 'Space Grotesk', system-ui, sans-serif;
@@ -28,33 +29,75 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: var(--font-ui); background: var(--paper); color: var(--ink); }
   .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { width: 100%; max-width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lift); padding: 32px; }
-  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-  .brand img { height: 32px; width: auto; border-radius: 6px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
+  .auth-card { width: 100%; max-width: 420px; box-shadow: var(--shadow-lift); padding: 32px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { height: 30px; width: auto; border-radius: 6px; }
   .brand-name { font-weight: 700; font-size: 15px; }
   .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--blue); text-transform: uppercase; }
   h1 { font-size: 22px; margin: 8px 0 4px; }
+  h2 { font-size: 16px; margin: 0 0 14px; }
+  h3 { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); margin: 20px 0 10px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+  h3:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
   .lede { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; line-height: 1.5; }
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px; }
-  .field input { width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: var(--font-ui); font-size: 14.5px; }
-  .btn-primary { width: 100%; padding: 12px; border-radius: var(--radius-sm); border: none; background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color: #fff; font-family: var(--font-ui); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: transform 0.15s var(--spring); }
+  .field input, .field select { width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: var(--font-ui); font-size: 14.5px; }
+  .field input:focus-visible, .field select:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .field-checkbox label { font-size: 13.5px; color: var(--ink); text-transform: none; font-weight: 500; }
+  .btn-primary { padding: 12px 20px; border-radius: var(--radius-sm); border: none; background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color: #fff; font-family: var(--font-ui); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: transform 0.15s var(--spring); }
+  .btn-primary.full { width: 100%; }
   .btn-primary:hover { transform: translateY(-1px); }
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
   .btn-ghost { padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink); font-family: var(--font-ui); font-weight: 600; font-size: 13.5px; cursor: pointer; }
+  .btn-text { background: none; border: none; color: var(--blue); font-weight: 600; font-size: 12.5px; cursor: pointer; padding: 0; }
   .form-error { color: var(--critical); font-size: 13px; margin: 6px 0 14px; min-height: 1em; }
-  .shell { max-width: 640px; margin: 0 auto; padding: 32px 20px; }
-  .who-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
-  .who-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
-  .who-row:last-child { border-bottom: none; }
-  .who-row .k { color: var(--ink-faint); }
-  .who-row .v { font-family: var(--font-mono); font-weight: 600; }
-  .test-result { font-family: var(--font-mono); font-size: 12.5px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px; white-space: pre-wrap; word-break: break-word; margin-top: 14px; min-height: 1.5em; max-height: 300px; overflow: auto; }
-  .test-result.ok { border-color: #10b981; }
-  .test-result.fail { border-color: var(--critical); color: var(--critical); }
-  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; }
   .hidden { display: none !important; }
   .loader { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 13px; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 10px; }
+  .who-inline { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--ink-soft); }
+  .who-inline .name { font-weight: 700; color: var(--ink); }
+  .shell { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .stat-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .stat-card .value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; }
+  .stat-card .label { font-size: 12px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+  .section { margin-bottom: 24px; }
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .freshness-label { color: var(--ink-faint); font-size: 12.5px; margin-left: auto; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  thead th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--line-soft); }
+  tbody td { padding: 12px 16px; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.mono { font-family: var(--font-mono); font-size: 12.5px; }
+  td.empty { text-align: center; padding: 32px; color: var(--ink-faint); }
+  .status-pill { display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; background: var(--blue-soft); color: var(--blue-deep); }
+
+  .flgrid { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  .flgrid th { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; padding: 6px; text-align: center; }
+  .flgrid td { padding: 3px; }
+  .flgrid input { width: 100%; padding: 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); font-size: 13px; text-align: center; }
+  .flgrid td.sno { text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--paper); padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13.5px; box-shadow: var(--shadow-lift); opacity: 0; transition: all 0.25s var(--spring); pointer-events: none; z-index: 100; max-width: 90vw; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--critical); }
+
+  @media (max-width: 600px) {
+    .field-row { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: 1fr; }
+    .who-inline span:not(.name) { display: none; }
+    table, thead, tbody, tr { display: block; }
+    thead { display: none; }
+    tbody tr { border-bottom: 1px solid var(--line); padding: 10px 0; }
+    tbody td { display: flex; justify-content: space-between; gap: 12px; border-bottom: none; padding: 4px 16px; }
+    tbody td::before { content: attr(data-label); font-size: 11px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; }
+  }
 </style>
 </head>
 <body>
@@ -62,45 +105,264 @@
 <div id="initialLoader" class="loader">Loading…</div>
 
 <div id="loginScreen" class="center-screen hidden">
-  <div class="card">
+  <div class="card auth-card">
     <div class="brand"><img src="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg" alt=""><span class="brand-name">CALGAS CAPACITORS</span></div>
-    <div class="eyebrow">ELE Tracker</div>
+    <div class="eyebrow" style="margin-top:14px">ELE Tracker</div>
     <h1>Sign in</h1>
     <p class="lede">Same account as Stock Management — sign in once, all three apps recognize you.</p>
     <form id="loginForm">
       <div class="field"><label for="loginUsername">Username or email</label><input type="text" id="loginUsername" autocomplete="username" required></div>
       <div class="field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" autocomplete="current-password" required></div>
       <div class="form-error" id="loginError"></div>
-      <button type="submit" class="btn-primary" id="loginSubmit">Sign in</button>
+      <button type="submit" class="btn-primary full" id="loginSubmit">Sign in</button>
     </form>
   </div>
 </div>
 
-<div id="appShell" class="shell hidden">
-  <div class="brand"><img src="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg" alt=""><span class="brand-name">CALGAS CAPACITORS</span><span class="eyebrow" style="margin-left:auto">PHASE 0</span></div>
-  <h1>ELE Tracker</h1>
-  <p class="lede">Foundation check — confirms the Sheet, Apps Script, shared login, and Dropdowns tab all round-trip correctly before any stage form gets built.</p>
-
-  <div class="who-card">
-    <div class="who-row"><span class="k">Name</span><span class="v" id="whoName">—</span></div>
-    <div class="who-row"><span class="k">Username</span><span class="v" id="whoUsername">—</span></div>
-    <div class="who-row"><span class="k">Role</span><span class="v" id="whoRole">—</span></div>
-    <div class="who-row"><span class="k">Department</span><span class="v" id="whoDepartment">—</span></div>
+<div id="appShell" class="hidden">
+  <div class="topbar">
+    <div class="brand"><img src="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg" alt=""><span class="brand-name">ELE Tracker</span></div>
+    <div class="who-inline">
+      <span class="name" id="whoName">—</span>
+      <span id="whoRoleDept">—</span>
+      <button class="btn-ghost" id="logoutBtn">Sign out</button>
+    </div>
   </div>
 
-  <div class="toolbar">
-    <button class="btn-primary" id="testConnectionBtn" style="width:auto;padding:12px 20px">Test connection</button>
-    <button class="btn-ghost" id="logoutBtn">Sign out</button>
+  <div class="shell">
+    <div class="stat-row">
+      <div class="stat-card"><div class="value" id="statTotalBatches">—</div><div class="label">Total batches</div></div>
+      <div class="stat-card"><div class="value" id="statInProcess">—</div><div class="label">In process</div></div>
+    </div>
+
+    <div class="section card hidden" id="createBatchCard">
+      <h2>Create new batch — Winding</h2>
+      <form id="createBatchForm">
+        <h3>Batch details</h3>
+        <div class="field"><label for="cbFgCode">FG code</label><input type="text" id="cbFgCode" list="fgOptions" placeholder="Search by code or name…" required><datalist id="fgOptions"></datalist></div>
+        <div class="field-row">
+          <div class="field"><label for="cbWindingProgramNo">Winding program no</label><input type="text" id="cbWindingProgramNo"></div>
+          <div class="field"><label for="cbCycleTime">Cycle time</label><input type="text" id="cbCycleTime"></div>
+        </div>
+        <div class="field"><label for="cbDrawingNo">Drawing no</label><input type="text" id="cbDrawingNo"></div>
+
+        <h3>Planning</h3>
+        <div class="field-row">
+          <div class="field"><label for="cbMfd">MFD</label><input type="text" id="cbMfd" required></div>
+          <div class="field"><label for="cbVoltage">Voltage (V ac)</label><input type="text" id="cbVoltage"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="cbCustomerName">Customer name</label><input type="text" id="cbCustomerName" list="customerOptions"><datalist id="customerOptions"></datalist></div>
+          <div class="field"><label for="cbBatchQty">Batch qty (No's)</label><input type="number" id="cbBatchQty" min="1"></div>
+        </div>
+
+        <h3>Input material &amp; film</h3>
+        <div class="field-row">
+          <div class="field"><label for="cbInputThickness">Thickness (micron)</label><input type="text" id="cbInputThickness"></div>
+          <div class="field"><label for="cbInputWidth">Width</label><input type="text" id="cbInputWidth"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="cbTypeOfFilm">Type of film</label><select id="cbTypeOfFilm"></select></div>
+          <div class="field"><label for="cbFreeMargin">Free margin</label><select id="cbFreeMargin"></select></div>
+        </div>
+        <div class="field-checkbox"><input type="checkbox" id="cbWaveCut"><label for="cbWaveCut">Wave cut</label></div>
+        <div class="field"><label for="cbMppFilmTurns">MPP film turns</label><input type="text" id="cbMppFilmTurns"></div>
+
+        <h3>Resistivity &amp; can</h3>
+        <div class="field-row">
+          <div class="field"><label for="cbResistivity">Resistivity</label><select id="cbResistivity"></select></div>
+          <div class="field"><label for="cbWrappingTurns">Wrapping turns</label><input type="text" id="cbWrappingTurns" value="20"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="cbReDie">Re-Die</label><input type="text" id="cbReDie"></div>
+          <div class="field"><label for="cbCanSize">Can size</label><select id="cbCanSize"></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="cbBarrierHeightTurns">Barrier height &amp; turns</label><input type="text" id="cbBarrierHeightTurns"></div>
+          <div class="field"><label for="cbCoreLength">Core length</label><input type="text" id="cbCoreLength" placeholder="e.g. 8mm"></div>
+        </div>
+        <div class="field"><label for="cbCoreOD">Core OD</label><input type="text" id="cbCoreOD" placeholder="e.g. 20mm"></div>
+
+        <h3>Film load / elements reading <button type="button" class="btn-text" id="toggleFilmLoad" style="margin-left:8px;text-transform:none;font-weight:600">show (optional)</button></h3>
+        <div id="filmLoadGrid" class="hidden">
+          <table class="flgrid">
+            <thead><tr><th>S.No</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+            <tbody id="filmLoadRows"></tbody>
+          </table>
+        </div>
+
+        <h3>First Winding shift</h3>
+        <div class="field-row">
+          <div class="field"><label for="cbDate">Date</label><input type="date" id="cbDate" required></div>
+          <div class="field"><label for="cbShift">Shift</label><select id="cbShift" required></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="cbMcNo">Machine</label><select id="cbMcNo" required></select></div>
+          <div class="field"><label for="cbTotalQty">Total qty</label><input type="number" id="cbTotalQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="cbBinsQty">Bins qty</label><input type="number" id="cbBinsQty" min="0"></div>
+          <div class="field"><label for="cbOperatorName">Operator</label><select id="cbOperatorName"></select></div>
+        </div>
+        <div class="field"><label for="cbRemarks">Remarks</label><input type="text" id="cbRemarks"></div>
+        <div class="field-row">
+          <div class="field"><label for="cbProdSupervisor">Prod supervisor</label><input type="text" id="cbProdSupervisor"></div>
+          <div class="field"><label for="cbPqa">PQA</label><input type="text" id="cbPqa"></div>
+        </div>
+
+        <div class="form-error" id="createBatchError"></div>
+        <button type="submit" class="btn-primary full" id="createBatchSubmit">Create batch</button>
+      </form>
+    </div>
+
+    <div class="section card hidden" id="logShiftCard">
+      <h2>Log additional shift — Winding</h2>
+      <p class="lede" style="margin-bottom:14px">For a batch already at Winding, continuing into another shift — same Master Batch No, no new code.</p>
+      <form id="logShiftForm">
+        <div class="field"><label for="lsMasterBatchNo">Master batch no</label><select id="lsMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="lsDate">Date</label><input type="date" id="lsDate" required></div>
+          <div class="field"><label for="lsShift">Shift</label><select id="lsShift" required></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="lsMcNo">Machine</label><select id="lsMcNo" required></select></div>
+          <div class="field"><label for="lsTotalQty">Total qty</label><input type="number" id="lsTotalQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="lsBinsQty">Bins qty</label><input type="number" id="lsBinsQty" min="0"></div>
+          <div class="field"><label for="lsOperatorName">Operator</label><select id="lsOperatorName"></select></div>
+        </div>
+        <div class="field"><label for="lsRemarks">Remarks</label><input type="text" id="lsRemarks"></div>
+        <div class="field-row">
+          <div class="field"><label for="lsProdSupervisor">Prod supervisor</label><input type="text" id="lsProdSupervisor"></div>
+          <div class="field"><label for="lsPqa">PQA</label><input type="text" id="lsPqa"></div>
+        </div>
+        <div class="form-error" id="logShiftError"></div>
+        <button type="submit" class="btn-primary full" id="logShiftSubmit">Log shift</button>
+      </form>
+    </div>
+
+    <div class="section card hidden" id="sprayCard">
+      <h2>Paper Masking, Fixture Setting, Zinc Spray &amp; Core Cleaning</h2>
+      <form id="sprayForm">
+        <div class="field"><label for="spMasterBatchNo">Master batch no</label><select id="spMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="spDate">Date</label><input type="date" id="spDate" required></div>
+          <div class="field"><label for="spShift">Shift</label><select id="spShift" required></select></div>
+        </div>
+        <div class="field"><label for="spMcNo">Machine</label><select id="spMcNo" required></select></div>
+
+        <h3>Settings</h3>
+        <div class="field-row">
+          <div class="field"><label for="spGunDistance">Gun distance (mm)</label><input type="text" id="spGunDistance"></div>
+          <div class="field"><label for="spSprayThickness">Spray thickness (mm)</label><input type="text" id="spSprayThickness"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="spSide1WireSpeed">Side-1 wire speed (mm/sec)</label><input type="text" id="spSide1WireSpeed"></div>
+          <div class="field"><label for="spSide2WireSpeed">Side-2 wire speed (mm/sec)</label><input type="text" id="spSide2WireSpeed"></div>
+        </div>
+
+        <h3>Readings (G1–G8)</h3>
+        <table class="flgrid">
+          <thead><tr><th></th><th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>G7</th><th>G8</th></tr></thead>
+          <tbody id="sprayReadingsRows"></tbody>
+        </table>
+
+        <h3>Production</h3>
+        <div class="field-row">
+          <div class="field"><label for="spTotalQty">Total qty</label><input type="number" id="spTotalQty" min="0"></div>
+          <div class="field"><label for="spGoodQty">Good qty</label><input type="number" id="spGoodQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="spRejectQty">Reject qty</label><input type="number" id="spRejectQty" min="0"></div>
+          <div class="field"><label for="spTraysQty">Trays qty</label><input type="number" id="spTraysQty" min="0"></div>
+        </div>
+        <div class="field"><label for="spOperatorName">Operator</label><select id="spOperatorName"></select></div>
+        <div class="field"><label for="spRemarks">Remarks</label><input type="text" id="spRemarks"></div>
+        <div class="field"><label for="spProdSupervisor">Prod supervisor</label><input type="text" id="spProdSupervisor"></div>
+
+        <div class="form-error" id="sprayError"></div>
+        <button type="submit" class="btn-primary full" id="spraySubmit">Log Spray</button>
+      </form>
+    </div>
+
+    <div class="section card hidden" id="heatStabCard">
+      <h2>Heat Stabilization &amp; Paper Unmasking</h2>
+      <form id="heatStabForm">
+        <div class="field"><label for="hsMasterBatchNo">Master batch no</label><select id="hsMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="hsDate">Date</label><input type="date" id="hsDate" required></div>
+          <div class="field"><label for="hsShift">Shift</label><select id="hsShift" required></select></div>
+        </div>
+        <div class="field"><label for="hsMcNo">Machine</label><select id="hsMcNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="hsProcessTimeHrs">Process time</label><select id="hsProcessTimeHrs"></select></div>
+          <div class="field"><label for="hsCoolingTimeHrs">Cooling time</label><select id="hsCoolingTimeHrs"></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="hsTimeIn">Time in</label><input type="time" id="hsTimeIn"></div>
+          <div class="field"><label for="hsTimeOut">Time out</label><input type="time" id="hsTimeOut"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="hsTotalQty">Total qty</label><input type="number" id="hsTotalQty" min="0"></div>
+          <div class="field"><label for="hsGoodQty">Good qty</label><input type="number" id="hsGoodQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="hsRejectQty">Reject qty</label><input type="number" id="hsRejectQty" min="0"></div>
+          <div class="field"><label for="hsTraysQty">Trays qty</label><input type="number" id="hsTraysQty" min="0"></div>
+        </div>
+        <div class="field"><label for="hsOperatorName">Operator</label><select id="hsOperatorName"></select></div>
+
+        <div class="form-error" id="heatStabError"></div>
+        <button type="submit" class="btn-primary full" id="heatStabSubmit">Log Heat Stabilization</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Batches</h2><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>FG Code</th><th>Customer</th><th>MFD</th><th>Qty</th><th>Stage</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody id="batchesTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Winding entries</h2><button class="btn-ghost" id="refreshWindingBtn">Refresh</button><span class="freshness-label" id="windingFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Bins Qty</th><th>Operator</th></tr></thead>
+        <tbody id="windingTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Spray entries</h2><button class="btn-ghost" id="refreshSprayBtn">Refresh</button><span class="freshness-label" id="sprayFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="sprayTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Heat Stabilization entries</h2><button class="btn-ghost" id="refreshHeatStabBtn">Refresh</button><span class="freshness-label" id="heatStabFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="heatStabTableBody"></tbody>
+      </table>
+    </div>
   </div>
-  <div id="testResult" class="test-result"></div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-// Fill in after your first deployment (Deploy > New deployment > Web App).
 const ELE_API_URL = 'https://script.google.com/macros/s/AKfycbwnOBDgyaLOGixNGGfq9mGjDV_DOHc4D8hVjkB83_yH1uQ5Gxd7zKGbQNggMmbtFXM3IQ/exec';
 const STOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwgMLr8mcNt402VpdDNkrrPpa0VuhwLs5xdZAtuJx9Iy_LQcKxXpxCO_mZfbCOGPn6Z/exec';
 
-const state = { session: null };
+const state = {
+  session: null, who: null, dropdowns: {}, fgCatalog: [],
+  batches: [], batchesLastUpdated: null,
+  windingEntries: [], windingLastUpdated: null
+};
 
 async function callApi(url, action, params) {
   params = params || {};
@@ -114,9 +376,6 @@ async function callApi(url, action, params) {
 function eleApi(action, params) { return callApi(ELE_API_URL, action, params); }
 function stockApi(action, params) { return callApi(STOCK_API_URL, action, params); }
 
-// Same localStorage key every app in this family uses — same GitHub Pages
-// account means same origin, so a session saved by any of them is already
-// visible here with zero extra plumbing.
 function saveSession(session) { state.session = session; localStorage.setItem('stock_session', JSON.stringify(session)); }
 function loadSession() {
   const raw = localStorage.getItem('stock_session');
@@ -128,12 +387,30 @@ function clearSession() { state.session = null; localStorage.removeItem('stock_s
 function show(id) {
   ['initialLoader', 'loginScreen', 'appShell'].forEach(function (s) { document.getElementById(s).classList.toggle('hidden', s !== id); });
 }
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function toast(msg, isError) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(toast._t); toast._t = setTimeout(function () { el.classList.remove('show'); }, 3500);
+}
+function timeAgo(date) {
+  if (!date) return 'never';
+  const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (secs < 10) return 'just now';
+  if (secs < 60) return secs + 's ago';
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return mins + (mins === 1 ? ' min ago' : ' mins ago');
+  const hrs = Math.floor(mins / 60);
+  return hrs + (hrs === 1 ? ' hr ago' : ' hrs ago');
+}
+function fillSelect(id, options, placeholder) {
+  const el = document.getElementById(id);
+  el.innerHTML = (placeholder ? '<option value="">' + placeholder + '</option>' : '') +
+    options.map(function (o) { return '<option value="' + escapeHtml(o) + '">' + escapeHtml(o) + '</option>'; }).join('');
+}
+function todayStr() { return new Date().toISOString().slice(0, 10); }
 
 async function boot() {
-  if (ELE_API_URL.indexOf('PASTE_ELE_TRACKER') === 0) {
-    document.getElementById('initialLoader').textContent = 'ELE_API_URL not configured yet — deploy this project as a Web App and paste the URL in at the top of the script.';
-    return;
-  }
   const saved = loadSession();
   if (saved && saved.token) {
     state.session = saved;
@@ -144,11 +421,144 @@ async function boot() {
 
 async function enterApp() {
   const who = await eleApi('whoami');
+  state.who = who;
   document.getElementById('whoName').textContent = who.name;
-  document.getElementById('whoUsername').textContent = who.username;
-  document.getElementById('whoRole').textContent = who.role + (who.isAdmin ? ' (full access)' : '');
-  document.getElementById('whoDepartment').textContent = who.department || '—';
+  document.getElementById('whoRoleDept').textContent = who.role + ' · ' + (who.department || '—');
+
+  const canWind = who.permissions.enterWinding;
+  document.getElementById('createBatchCard').classList.toggle('hidden', !canWind);
+  document.getElementById('logShiftCard').classList.toggle('hidden', !canWind);
+
   show('appShell');
+
+  state.dropdowns = await eleApi('getDropdowns');
+  fillSelect('cbTypeOfFilm', state.dropdowns.FilmType || [], 'Select…');
+  fillSelect('cbFreeMargin', state.dropdowns.FreeMargin || [], 'Select…');
+  fillSelect('cbResistivity', state.dropdowns.Resistivity || [], 'Select…');
+  fillSelect('cbCanSize', state.dropdowns.CanSize || [], 'Select…');
+  fillSelect('cbShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('cbMcNo', state.dropdowns.Machines_Winding || [], 'Select…');
+  fillSelect('cbOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('lsShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('lsMcNo', state.dropdowns.Machines_Winding || [], 'Select…');
+  fillSelect('lsOperatorName', state.dropdowns.Staff || [], 'Select…');
+  document.getElementById('customerOptions').innerHTML = (state.dropdowns.CustomerNames || []).map(function (c) { return '<option value="' + escapeHtml(c) + '">'; }).join('');
+  document.getElementById('cbDate').value = todayStr();
+  document.getElementById('lsDate').value = todayStr();
+  buildFilmLoadGrid();
+
+  if (canWind) {
+    state.fgCatalog = await eleApi('getFGCatalog');
+    document.getElementById('fgOptions').innerHTML = state.fgCatalog.map(function (f) { return '<option value="' + escapeHtml(f.code + ' — ' + f.name) + '">'; }).join('');
+  }
+
+  await Promise.all([loadBatches(), loadWindingEntries()]);
+  setInterval(function () {
+    if (document.visibilityState !== 'visible') return;
+    loadBatches().catch(function (err) { console.error(err); });
+    loadWindingEntries().catch(function (err) { console.error(err); });
+  }, 45000);
+  setInterval(updateFreshnessLabels, 20000);
+}
+
+function resolveFgCode(typed) {
+  const code = typed.split(' — ')[0].trim();
+  const match = state.fgCatalog.filter(function (f) { return f.code === code; })[0];
+  return match ? match.code : null;
+}
+
+function buildFilmLoadGrid() {
+  const body = document.getElementById('filmLoadRows');
+  let html = '';
+  for (let i = 1; i <= 8; i++) {
+    html += '<tr><td class="sno">' + i + '</td>' +
+      '<td><input type="text" data-sno="' + i + '" data-col="1"></td>' +
+      '<td><input type="text" data-sno="' + i + '" data-col="2"></td>' +
+      '<td><input type="text" data-sno="' + i + '" data-col="3"></td>' +
+      '<td><input type="text" data-sno="' + i + '" data-col="4"></td></tr>';
+  }
+  body.innerHTML = html;
+}
+function collectFilmLoadReadings() {
+  const rows = [];
+  for (let i = 1; i <= 8; i++) {
+    const r1 = document.querySelector('[data-sno="' + i + '"][data-col="1"]').value.trim();
+    const r2 = document.querySelector('[data-sno="' + i + '"][data-col="2"]').value.trim();
+    const r3 = document.querySelector('[data-sno="' + i + '"][data-col="3"]').value.trim();
+    const r4 = document.querySelector('[data-sno="' + i + '"][data-col="4"]').value.trim();
+    if (r1 || r2 || r3 || r4) rows.push({ sNo: i, reading1: r1, reading2: r2, reading3: r3, reading4: r4 });
+  }
+  return rows;
+}
+document.getElementById('toggleFilmLoad').addEventListener('click', function () {
+  const grid = document.getElementById('filmLoadGrid');
+  const nowHidden = grid.classList.toggle('hidden');
+  this.textContent = nowHidden ? 'show (optional)' : 'hide';
+});
+
+function updateFreshnessLabels() {
+  [['batchesFreshness', 'batchesLastUpdated'], ['windingFreshness', 'windingLastUpdated']].forEach(function (pair) {
+    const el = document.getElementById(pair[0]);
+    if (el) el.textContent = 'Updated ' + timeAgo(state[pair[1]]);
+  });
+}
+
+async function loadBatches() {
+  state.batches = await eleApi('getBatchMasterList');
+  state.batchesLastUpdated = new Date();
+  renderBatches();
+  populateBatchDropdown();
+  updateFreshnessLabels();
+}
+function renderBatches() {
+  document.getElementById('statTotalBatches').textContent = state.batches.length;
+  document.getElementById('statInProcess').textContent = state.batches.filter(function (b) { return b.Status === 'In Process'; }).length;
+
+  const body = document.getElementById('batchesTableBody');
+  if (state.batches.length === 0) { body.innerHTML = '<tr><td colspan="8" class="empty">No batches yet.</td></tr>'; return; }
+  body.innerHTML = state.batches.map(function (b) {
+    const created = b.CreatedDate ? new Date(b.CreatedDate).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(b.MasterBatchNo) + '</td>' +
+      '<td data-label="FG Code">' + escapeHtml(b.FGCode) + '</td>' +
+      '<td data-label="Customer">' + escapeHtml(b.CustomerName || '—') + '</td>' +
+      '<td data-label="MFD">' + escapeHtml(b.MFD) + '</td>' +
+      '<td class="mono" data-label="Qty">' + escapeHtml(b.BatchQty || '—') + '</td>' +
+      '<td data-label="Stage"><span class="status-pill">' + escapeHtml(b.CurrentStage) + '</span></td>' +
+      '<td data-label="Status">' + escapeHtml(b.Status) + '</td>' +
+      '<td data-label="Created">' + created + '</td>' +
+      '</tr>';
+  }).join('');
+}
+function populateBatchDropdown() {
+  const inProcess = state.batches.filter(function (b) { return b.CurrentStage === 'Winding' && b.Status === 'In Process'; });
+  const sel = document.getElementById('lsMasterBatchNo');
+  sel.innerHTML = inProcess.length
+    ? inProcess.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches at Winding</option>';
+}
+
+async function loadWindingEntries() {
+  state.windingEntries = await eleApi('getWindingEntries');
+  state.windingLastUpdated = new Date();
+  renderWindingEntries();
+  updateFreshnessLabels();
+}
+function renderWindingEntries() {
+  const body = document.getElementById('windingTableBody');
+  if (state.windingEntries.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No entries yet.</td></tr>'; return; }
+  body.innerHTML = state.windingEntries.map(function (w) {
+    const date = w.Date ? new Date(w.Date).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(w.MasterBatchNo) + '</td>' +
+      '<td data-label="Date">' + date + '</td>' +
+      '<td data-label="Shift">' + escapeHtml(w.Shift) + '</td>' +
+      '<td data-label="Machine">' + escapeHtml(w.MCNo) + '</td>' +
+      '<td class="mono" data-label="Total Qty">' + escapeHtml(w.TotalQty || '—') + '</td>' +
+      '<td class="mono" data-label="Bins Qty">' + escapeHtml(w.BinsQty || '—') + '</td>' +
+      '<td data-label="Operator">' + escapeHtml(w.OperatorName || '—') + '</td>' +
+      '</tr>';
+  }).join('');
 }
 
 document.getElementById('loginForm').addEventListener('submit', async function (e) {
@@ -158,45 +568,101 @@ document.getElementById('loginForm').addEventListener('submit', async function (
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
-    const session = await stockApi('login', {
-      username: document.getElementById('loginUsername').value.trim(),
-      password: document.getElementById('loginPassword').value
-    });
+    const session = await stockApi('login', { username: document.getElementById('loginUsername').value.trim(), password: document.getElementById('loginPassword').value });
     saveSession(session);
     await enterApp();
-  } catch (err) {
-    errEl.textContent = err.message;
-  } finally {
-    btn.disabled = false; btn.textContent = 'Sign in';
-  }
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Sign in'; }
 });
+document.getElementById('logoutBtn').addEventListener('click', function () { clearSession(); location.reload(); });
 
-document.getElementById('logoutBtn').addEventListener('click', function () {
-  clearSession();
-  show('loginScreen');
-});
-
-document.getElementById('testConnectionBtn').addEventListener('click', async function () {
-  const btn = this;
-  const resultEl = document.getElementById('testResult');
-  resultEl.className = 'test-result';
-  btn.disabled = true; btn.textContent = 'Testing…';
+document.getElementById('createBatchForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('createBatchSubmit');
+  const errEl = document.getElementById('createBatchError');
+  errEl.textContent = '';
+  const fgCode = resolveFgCode(document.getElementById('cbFgCode').value.trim());
+  if (!fgCode) { errEl.textContent = 'Pick an FG code from the list.'; return; }
+  btn.disabled = true; btn.textContent = 'Creating…';
   try {
-    const ping = await eleApi('ping');
-    const who = await eleApi('whoami');
-    const dropdowns = await eleApi('getDropdowns');
-    const listCounts = Object.keys(dropdowns).map(function (k) { return k + ': ' + dropdowns[k].length; }).join('\n  ');
-    resultEl.className = 'test-result ok';
-    resultEl.textContent =
-      '✓ ping — Web App reachable\n  ' + JSON.stringify(ping) + '\n\n' +
-      '✓ whoami — shared session validated against Stock Management\n  ' + JSON.stringify(who) + '\n\n' +
-      '✓ getDropdowns — Dropdowns tab reachable\n  ' + (listCounts || '(no lists have data yet — expected until you populate Dropdowns)');
-  } catch (err) {
-    resultEl.className = 'test-result fail';
-    resultEl.textContent = '✗ ' + err.message;
-  } finally {
-    btn.disabled = false; btn.textContent = 'Test connection';
-  }
+    const result = await eleApi('createWindingBatch', {
+      fgCode: fgCode,
+      windingProgramNo: document.getElementById('cbWindingProgramNo').value.trim(),
+      cycleTime: document.getElementById('cbCycleTime').value.trim(),
+      drawingNo: document.getElementById('cbDrawingNo').value.trim(),
+      mfd: document.getElementById('cbMfd').value.trim(),
+      voltage: document.getElementById('cbVoltage').value.trim(),
+      customerName: document.getElementById('cbCustomerName').value.trim(),
+      batchQty: document.getElementById('cbBatchQty').value || undefined,
+      inputThickness: document.getElementById('cbInputThickness').value.trim(),
+      inputWidth: document.getElementById('cbInputWidth').value.trim(),
+      typeOfFilm: document.getElementById('cbTypeOfFilm').value,
+      waveCut: document.getElementById('cbWaveCut').checked,
+      freeMargin: document.getElementById('cbFreeMargin').value,
+      mppFilmTurns: document.getElementById('cbMppFilmTurns').value.trim(),
+      resistivity: document.getElementById('cbResistivity').value,
+      wrappingTurns: document.getElementById('cbWrappingTurns').value.trim(),
+      reDie: document.getElementById('cbReDie').value.trim(),
+      canSize: document.getElementById('cbCanSize').value,
+      barrierHeightTurns: document.getElementById('cbBarrierHeightTurns').value.trim(),
+      coreLength: document.getElementById('cbCoreLength').value.trim(),
+      coreOD: document.getElementById('cbCoreOD').value.trim(),
+      filmLoadReadings: collectFilmLoadReadings(),
+      date: document.getElementById('cbDate').value,
+      shift: document.getElementById('cbShift').value,
+      mcNo: document.getElementById('cbMcNo').value,
+      totalQty: document.getElementById('cbTotalQty').value || undefined,
+      binsQty: document.getElementById('cbBinsQty').value || undefined,
+      operatorName: document.getElementById('cbOperatorName').value,
+      remarks: document.getElementById('cbRemarks').value.trim(),
+      prodSupervisor: document.getElementById('cbProdSupervisor').value.trim(),
+      pqa: document.getElementById('cbPqa').value.trim()
+    });
+    document.getElementById('createBatchForm').reset();
+    document.getElementById('cbDate').value = todayStr();
+    buildFilmLoadGrid();
+    toast('Created ' + result.masterBatchNo);
+    await loadBatches();
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Create batch'; }
+});
+
+document.getElementById('logShiftForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('logShiftSubmit');
+  const errEl = document.getElementById('logShiftError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('lsMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  btn.disabled = true; btn.textContent = 'Logging…';
+  try {
+    await eleApi('addWindingShift', {
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('lsDate').value,
+      shift: document.getElementById('lsShift').value,
+      mcNo: document.getElementById('lsMcNo').value,
+      totalQty: document.getElementById('lsTotalQty').value || undefined,
+      binsQty: document.getElementById('lsBinsQty').value || undefined,
+      operatorName: document.getElementById('lsOperatorName').value,
+      remarks: document.getElementById('lsRemarks').value.trim(),
+      prodSupervisor: document.getElementById('lsProdSupervisor').value.trim(),
+      pqa: document.getElementById('lsPqa').value.trim()
+    });
+    document.getElementById('logShiftForm').reset();
+    document.getElementById('lsDate').value = todayStr();
+    toast('Shift logged — ' + masterBatchNo);
+    await loadWindingEntries();
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Log shift'; }
+});
+
+document.getElementById('refreshBatchesBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadBatches(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+document.getElementById('refreshWindingBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadWindingEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
 });
 
 if ('serviceWorker' in navigator) {
