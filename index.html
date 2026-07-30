@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.2.0-phase1">
+<meta name="app-version" content="0.3.0-phase2">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -361,7 +361,9 @@ const STOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwgMLr8mcNt402Vpd
 const state = {
   session: null, who: null, dropdowns: {}, fgCatalog: [],
   batches: [], batchesLastUpdated: null,
-  windingEntries: [], windingLastUpdated: null
+  windingEntries: [], windingLastUpdated: null,
+  sprayEntries: [], sprayLastUpdated: null,
+  heatStabEntries: [], heatStabLastUpdated: null
 };
 
 async function callApi(url, action, params) {
@@ -428,6 +430,8 @@ async function enterApp() {
   const canWind = who.permissions.enterWinding;
   document.getElementById('createBatchCard').classList.toggle('hidden', !canWind);
   document.getElementById('logShiftCard').classList.toggle('hidden', !canWind);
+  document.getElementById('sprayCard').classList.toggle('hidden', !who.permissions.enterSpray);
+  document.getElementById('heatStabCard').classList.toggle('hidden', !who.permissions.enterHeatStab);
 
   show('appShell');
 
@@ -442,21 +446,34 @@ async function enterApp() {
   fillSelect('lsShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('lsMcNo', state.dropdowns.Machines_Winding || [], 'Select…');
   fillSelect('lsOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('spShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('spMcNo', state.dropdowns.Machines_Spray || [], 'Select…');
+  fillSelect('spOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('hsShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('hsMcNo', state.dropdowns.Machines_HeatStab || [], 'Select…');
+  fillSelect('hsProcessTimeHrs', state.dropdowns.ProcessTimeOptions || [], 'Select…');
+  fillSelect('hsCoolingTimeHrs', state.dropdowns.CoolingTimeOptions || [], 'Select…');
+  fillSelect('hsOperatorName', state.dropdowns.Staff || [], 'Select…');
   document.getElementById('customerOptions').innerHTML = (state.dropdowns.CustomerNames || []).map(function (c) { return '<option value="' + escapeHtml(c) + '">'; }).join('');
   document.getElementById('cbDate').value = todayStr();
   document.getElementById('lsDate').value = todayStr();
+  document.getElementById('spDate').value = todayStr();
+  document.getElementById('hsDate').value = todayStr();
   buildFilmLoadGrid();
+  buildSprayReadingsGrid();
 
   if (canWind) {
     state.fgCatalog = await eleApi('getFGCatalog');
     document.getElementById('fgOptions').innerHTML = state.fgCatalog.map(function (f) { return '<option value="' + escapeHtml(f.code + ' — ' + f.name) + '">'; }).join('');
   }
 
-  await Promise.all([loadBatches(), loadWindingEntries()]);
+  await Promise.all([loadBatches(), loadWindingEntries(), loadSprayEntries(), loadHeatStabEntries()]);
   setInterval(function () {
     if (document.visibilityState !== 'visible') return;
     loadBatches().catch(function (err) { console.error(err); });
     loadWindingEntries().catch(function (err) { console.error(err); });
+    loadSprayEntries().catch(function (err) { console.error(err); });
+    loadHeatStabEntries().catch(function (err) { console.error(err); });
   }, 45000);
   setInterval(updateFreshnessLabels, 20000);
 }
@@ -496,8 +513,35 @@ document.getElementById('toggleFilmLoad').addEventListener('click', function () 
   this.textContent = nowHidden ? 'show (optional)' : 'hide';
 });
 
+// Spray's three-row (Voltage/Current/AirPressure) x 8-column (G1-G8) grid —
+// same compact input-grid pattern as Film Load Readings above.
+function buildSprayReadingsGrid() {
+  const rows = [
+    { label: 'Voltage', field: 'voltageG' },
+    { label: 'Current', field: 'currentG' },
+    { label: 'Air Pressure', field: 'airPressureAP' }
+  ];
+  const body = document.getElementById('sprayReadingsRows');
+  body.innerHTML = rows.map(function (r) {
+    let cells = '<td class="sno">' + r.label + '</td>';
+    for (let i = 1; i <= 8; i++) cells += '<td><input type="text" data-spfield="' + r.field + i + '"></td>';
+    return '<tr>' + cells + '</tr>';
+  }).join('');
+}
+function collectSprayReadings() {
+  const out = {};
+  ['voltageG', 'currentG', 'airPressureAP'].forEach(function (prefix) {
+    for (let i = 1; i <= 8; i++) {
+      const el = document.querySelector('[data-spfield="' + prefix + i + '"]');
+      out[prefix + i] = el ? el.value.trim() : '';
+    }
+  });
+  return out;
+}
+
 function updateFreshnessLabels() {
-  [['batchesFreshness', 'batchesLastUpdated'], ['windingFreshness', 'windingLastUpdated']].forEach(function (pair) {
+  [['batchesFreshness', 'batchesLastUpdated'], ['windingFreshness', 'windingLastUpdated'],
+   ['sprayFreshness', 'sprayLastUpdated'], ['heatStabFreshness', 'heatStabLastUpdated']].forEach(function (pair) {
     const el = document.getElementById(pair[0]);
     if (el) el.textContent = 'Updated ' + timeAgo(state[pair[1]]);
   });
@@ -531,11 +575,23 @@ function renderBatches() {
   }).join('');
 }
 function populateBatchDropdown() {
-  const inProcess = state.batches.filter(function (b) { return b.CurrentStage === 'Winding' && b.Status === 'In Process'; });
-  const sel = document.getElementById('lsMasterBatchNo');
-  sel.innerHTML = inProcess.length
-    ? inProcess.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+  const windingReady = state.batches.filter(function (b) { return b.CurrentStage === 'Winding' && b.Status === 'In Process'; });
+  const lsSel = document.getElementById('lsMasterBatchNo');
+  lsSel.innerHTML = windingReady.length
+    ? windingReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
     : '<option value="">No batches at Winding</option>';
+
+  const sprayReady = state.batches.filter(function (b) { return b.CurrentStage === 'Winding' && b.Status === 'In Process'; });
+  const spSel = document.getElementById('spMasterBatchNo');
+  spSel.innerHTML = sprayReady.length
+    ? sprayReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for Spray</option>';
+
+  const heatStabReady = state.batches.filter(function (b) { return b.CurrentStage === 'Spray' && b.Status === 'In Process'; });
+  const hsSel = document.getElementById('hsMasterBatchNo');
+  hsSel.innerHTML = heatStabReady.length
+    ? heatStabReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for Heat Stabilization</option>';
 }
 
 async function loadWindingEntries() {
@@ -557,6 +613,52 @@ function renderWindingEntries() {
       '<td class="mono" data-label="Total Qty">' + escapeHtml(w.TotalQty || '—') + '</td>' +
       '<td class="mono" data-label="Bins Qty">' + escapeHtml(w.BinsQty || '—') + '</td>' +
       '<td data-label="Operator">' + escapeHtml(w.OperatorName || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function loadSprayEntries() {
+  state.sprayEntries = await eleApi('getSprayEntries');
+  state.sprayLastUpdated = new Date();
+  renderSprayEntries();
+  updateFreshnessLabels();
+}
+function renderSprayEntries() {
+  const body = document.getElementById('sprayTableBody');
+  if (state.sprayEntries.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No entries yet.</td></tr>'; return; }
+  body.innerHTML = state.sprayEntries.map(function (s) {
+    const date = s.Date ? new Date(s.Date).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(s.MasterBatchNo) + '</td>' +
+      '<td data-label="Date">' + date + '</td>' +
+      '<td data-label="Shift">' + escapeHtml(s.Shift) + '</td>' +
+      '<td data-label="Machine">' + escapeHtml(s.MCNo) + '</td>' +
+      '<td class="mono" data-label="Total Qty">' + escapeHtml(s.TotalQty || '—') + '</td>' +
+      '<td class="mono" data-label="Good Qty">' + escapeHtml(s.GoodQty || '—') + '</td>' +
+      '<td class="mono" data-label="Reject Qty">' + escapeHtml(s.RejectQty || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function loadHeatStabEntries() {
+  state.heatStabEntries = await eleApi('getHeatStabEntries');
+  state.heatStabLastUpdated = new Date();
+  renderHeatStabEntries();
+  updateFreshnessLabels();
+}
+function renderHeatStabEntries() {
+  const body = document.getElementById('heatStabTableBody');
+  if (state.heatStabEntries.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No entries yet.</td></tr>'; return; }
+  body.innerHTML = state.heatStabEntries.map(function (h) {
+    const date = h.Date ? new Date(h.Date).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(h.MasterBatchNo) + '</td>' +
+      '<td data-label="Date">' + date + '</td>' +
+      '<td data-label="Shift">' + escapeHtml(h.Shift) + '</td>' +
+      '<td data-label="Machine">' + escapeHtml(h.MCNo) + '</td>' +
+      '<td class="mono" data-label="Total Qty">' + escapeHtml(h.TotalQty || '—') + '</td>' +
+      '<td class="mono" data-label="Good Qty">' + escapeHtml(h.GoodQty || '—') + '</td>' +
+      '<td class="mono" data-label="Reject Qty">' + escapeHtml(h.RejectQty || '—') + '</td>' +
       '</tr>';
   }).join('');
 }
@@ -663,6 +765,82 @@ document.getElementById('refreshBatchesBtn').addEventListener('click', async fun
 document.getElementById('refreshWindingBtn').addEventListener('click', async function () {
   const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
   try { await loadWindingEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+
+document.getElementById('sprayForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('spraySubmit');
+  const errEl = document.getElementById('sprayError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('spMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  btn.disabled = true; btn.textContent = 'Logging…';
+  try {
+    const readings = collectSprayReadings();
+    await eleApi('enterSpray', Object.assign({
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('spDate').value,
+      shift: document.getElementById('spShift').value,
+      mcNo: document.getElementById('spMcNo').value,
+      gunDistance: document.getElementById('spGunDistance').value.trim(),
+      sprayThickness: document.getElementById('spSprayThickness').value.trim(),
+      side1WireSpeed: document.getElementById('spSide1WireSpeed').value.trim(),
+      side2WireSpeed: document.getElementById('spSide2WireSpeed').value.trim(),
+      totalQty: document.getElementById('spTotalQty').value || undefined,
+      goodQty: document.getElementById('spGoodQty').value || undefined,
+      rejectQty: document.getElementById('spRejectQty').value || undefined,
+      traysQty: document.getElementById('spTraysQty').value || undefined,
+      operatorName: document.getElementById('spOperatorName').value,
+      remarks: document.getElementById('spRemarks').value.trim(),
+      prodSupervisor: document.getElementById('spProdSupervisor').value.trim()
+    }, readings));
+    document.getElementById('sprayForm').reset();
+    document.getElementById('spDate').value = todayStr();
+    buildSprayReadingsGrid();
+    toast('Spray logged — ' + masterBatchNo);
+    await Promise.all([loadBatches(), loadSprayEntries()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Log Spray'; }
+});
+document.getElementById('refreshSprayBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadSprayEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+
+document.getElementById('heatStabForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('heatStabSubmit');
+  const errEl = document.getElementById('heatStabError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('hsMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  btn.disabled = true; btn.textContent = 'Logging…';
+  try {
+    await eleApi('enterHeatStab', {
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('hsDate').value,
+      shift: document.getElementById('hsShift').value,
+      mcNo: document.getElementById('hsMcNo').value,
+      processTimeHrs: document.getElementById('hsProcessTimeHrs').value,
+      coolingTimeHrs: document.getElementById('hsCoolingTimeHrs').value,
+      timeIn: document.getElementById('hsTimeIn').value,
+      timeOut: document.getElementById('hsTimeOut').value,
+      totalQty: document.getElementById('hsTotalQty').value || undefined,
+      goodQty: document.getElementById('hsGoodQty').value || undefined,
+      rejectQty: document.getElementById('hsRejectQty').value || undefined,
+      traysQty: document.getElementById('hsTraysQty').value || undefined,
+      operatorName: document.getElementById('hsOperatorName').value
+    });
+    document.getElementById('heatStabForm').reset();
+    document.getElementById('hsDate').value = todayStr();
+    toast('Heat Stabilization logged — ' + masterBatchNo);
+    await Promise.all([loadBatches(), loadHeatStabEntries()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Log Heat Stabilization'; }
+});
+document.getElementById('refreshHeatStabBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadHeatStabEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
 });
 
 if ('serviceWorker' in navigator) {
