@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.3.0-phase2">
+<meta name="app-version" content="0.4.0-phase3">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -405,6 +405,22 @@
         <tbody id="heatStabTableBody"></tbody>
       </table>
     </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Short Clearing entries</h2><button class="btn-ghost" id="refreshScBtn">Refresh</button><span class="freshness-label" id="scFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="scTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Short Clearing test results</h2><button class="btn-ghost" id="refreshScTestBtn">Refresh</button><span class="freshness-label" id="scTestFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Round</th><th>Date</th><th>Total</th><th>Good</th><th>Rejection %</th></tr></thead>
+        <tbody id="scTestTableBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -419,7 +435,9 @@ const state = {
   batches: [], batchesLastUpdated: null,
   windingEntries: [], windingLastUpdated: null,
   sprayEntries: [], sprayLastUpdated: null,
-  heatStabEntries: [], heatStabLastUpdated: null
+  heatStabEntries: [], heatStabLastUpdated: null,
+  scEntries: [], scLastUpdated: null,
+  scTestResults: [], scTestLastUpdated: null
 };
 
 async function callApi(url, action, params) {
@@ -488,6 +506,7 @@ async function enterApp() {
   document.getElementById('logShiftCard').classList.toggle('hidden', !canWind);
   document.getElementById('sprayCard').classList.toggle('hidden', !who.permissions.enterSpray);
   document.getElementById('heatStabCard').classList.toggle('hidden', !who.permissions.enterHeatStab);
+  document.getElementById('shortClearingCard').classList.toggle('hidden', !who.permissions.enterShortClearing);
 
   show('appShell');
 
@@ -510,26 +529,33 @@ async function enterApp() {
   fillSelect('hsProcessTimeHrs', state.dropdowns.ProcessTimeOptions || [], 'Select…');
   fillSelect('hsCoolingTimeHrs', state.dropdowns.CoolingTimeOptions || [], 'Select…');
   fillSelect('hsOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('scShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('scMcNo', state.dropdowns.Machines_ShortClearing || [], 'Select…');
+  fillSelect('scOperatorName', state.dropdowns.Staff || [], 'Select…');
   document.getElementById('customerOptions').innerHTML = (state.dropdowns.CustomerNames || []).map(function (c) { return '<option value="' + escapeHtml(c) + '">'; }).join('');
   document.getElementById('cbDate').value = todayStr();
   document.getElementById('lsDate').value = todayStr();
   document.getElementById('spDate').value = todayStr();
   document.getElementById('hsDate').value = todayStr();
+  document.getElementById('scDate').value = todayStr();
   buildFilmLoadGrid();
   buildSprayReadingsGrid();
+  buildScTestingGrid();
 
   if (canWind) {
     state.fgCatalog = await eleApi('getFGCatalog');
     document.getElementById('fgOptions').innerHTML = state.fgCatalog.map(function (f) { return '<option value="' + escapeHtml(f.code + ' — ' + f.name) + '">'; }).join('');
   }
 
-  await Promise.all([loadBatches(), loadWindingEntries(), loadSprayEntries(), loadHeatStabEntries()]);
+  await Promise.all([loadBatches(), loadWindingEntries(), loadSprayEntries(), loadHeatStabEntries(), loadScEntries(), loadScTestResults()]);
   setInterval(function () {
     if (document.visibilityState !== 'visible') return;
     loadBatches().catch(function (err) { console.error(err); });
     loadWindingEntries().catch(function (err) { console.error(err); });
     loadSprayEntries().catch(function (err) { console.error(err); });
     loadHeatStabEntries().catch(function (err) { console.error(err); });
+    loadScEntries().catch(function (err) { console.error(err); });
+    loadScTestResults().catch(function (err) { console.error(err); });
   }, 45000);
   setInterval(updateFreshnessLabels, 20000);
 }
@@ -595,9 +621,42 @@ function collectSprayReadings() {
   return out;
 }
 
+// Short Clearing's Testing/Retesting grid — one row per round type, matching
+// the card's Round-1/Round-2/Recovered/TotalQty layout. Only rounds with
+// at least one filled field get submitted.
+const SC_ROUND_TYPES = ['Round-1', 'Round-2', 'Recovered', 'TotalQty'];
+const SC_ROUND_FIELDS = ['date', 'totalQty', 'goodQty', 'hvBurst', 'capPlus', 'capMinus', 'tand', 'rejectionPct'];
+function buildScTestingGrid() {
+  const body = document.getElementById('scTestingRows');
+  body.innerHTML = SC_ROUND_TYPES.map(function (round) {
+    let cells = '<td style="text-align:left;font-weight:600;font-size:12.5px">' + round + '</td>';
+    cells += '<td><input type="date" data-scround="' + round + '" data-scfield="date"></td>';
+    SC_ROUND_FIELDS.slice(1).forEach(function (f) {
+      cells += '<td><input type="text" data-scround="' + round + '" data-scfield="' + f + '"></td>';
+    });
+    return '<tr>' + cells + '</tr>';
+  }).join('');
+}
+function collectScTestingRounds() {
+  const rounds = [];
+  SC_ROUND_TYPES.forEach(function (round) {
+    const entry = { roundType: round };
+    let hasData = false;
+    SC_ROUND_FIELDS.forEach(function (f) {
+      const el = document.querySelector('[data-scround="' + round + '"][data-scfield="' + f + '"]');
+      const val = el ? el.value.trim() : '';
+      if (val) hasData = true;
+      entry[f] = val;
+    });
+    if (hasData) rounds.push(entry);
+  });
+  return rounds;
+}
+
 function updateFreshnessLabels() {
   [['batchesFreshness', 'batchesLastUpdated'], ['windingFreshness', 'windingLastUpdated'],
-   ['sprayFreshness', 'sprayLastUpdated'], ['heatStabFreshness', 'heatStabLastUpdated']].forEach(function (pair) {
+   ['sprayFreshness', 'sprayLastUpdated'], ['heatStabFreshness', 'heatStabLastUpdated'],
+   ['scFreshness', 'scLastUpdated'], ['scTestFreshness', 'scTestLastUpdated']].forEach(function (pair) {
     const el = document.getElementById(pair[0]);
     if (el) el.textContent = 'Updated ' + timeAgo(state[pair[1]]);
   });
@@ -648,6 +707,12 @@ function populateBatchDropdown() {
   hsSel.innerHTML = heatStabReady.length
     ? heatStabReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
     : '<option value="">No batches ready for Heat Stabilization</option>';
+
+  const scReady = state.batches.filter(function (b) { return b.CurrentStage === 'Heat Stabilization' && b.Status === 'In Process'; });
+  const scSel = document.getElementById('scMasterBatchNo');
+  scSel.innerHTML = scReady.length
+    ? scReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for Short Clearing</option>';
 }
 
 async function loadWindingEntries() {
@@ -715,6 +780,51 @@ function renderHeatStabEntries() {
       '<td class="mono" data-label="Total Qty">' + escapeHtml(h.TotalQty || '—') + '</td>' +
       '<td class="mono" data-label="Good Qty">' + escapeHtml(h.GoodQty || '—') + '</td>' +
       '<td class="mono" data-label="Reject Qty">' + escapeHtml(h.RejectQty || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function loadScEntries() {
+  state.scEntries = await eleApi('getShortClearingEntries');
+  state.scLastUpdated = new Date();
+  renderScEntries();
+  updateFreshnessLabels();
+}
+function renderScEntries() {
+  const body = document.getElementById('scTableBody');
+  if (state.scEntries.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No entries yet.</td></tr>'; return; }
+  body.innerHTML = state.scEntries.map(function (s) {
+    const date = s.Date ? new Date(s.Date).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(s.MasterBatchNo) + '</td>' +
+      '<td data-label="Date">' + date + '</td>' +
+      '<td data-label="Shift">' + escapeHtml(s.Shift) + '</td>' +
+      '<td data-label="Machine">' + escapeHtml(s.MCNo) + '</td>' +
+      '<td class="mono" data-label="Total Qty">' + escapeHtml(s.TotalQty || '—') + '</td>' +
+      '<td class="mono" data-label="Good Qty">' + escapeHtml(s.GoodQty || '—') + '</td>' +
+      '<td class="mono" data-label="Reject Qty">' + escapeHtml(s.RejectQty || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function loadScTestResults() {
+  state.scTestResults = await eleApi('getShortClearingTestResults');
+  state.scTestLastUpdated = new Date();
+  renderScTestResults();
+  updateFreshnessLabels();
+}
+function renderScTestResults() {
+  const body = document.getElementById('scTestTableBody');
+  if (state.scTestResults.length === 0) { body.innerHTML = '<tr><td colspan="6" class="empty">No test results yet.</td></tr>'; return; }
+  body.innerHTML = state.scTestResults.map(function (t) {
+    const date = t.Date ? new Date(t.Date).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(t.MasterBatchNo) + '</td>' +
+      '<td data-label="Round">' + escapeHtml(t.RoundType) + '</td>' +
+      '<td data-label="Date">' + date + '</td>' +
+      '<td class="mono" data-label="Total">' + escapeHtml(t.TotalQty || '—') + '</td>' +
+      '<td class="mono" data-label="Good">' + escapeHtml(t.GoodQty || '—') + '</td>' +
+      '<td class="mono" data-label="Rejection %">' + escapeHtml(t.RejectionPct || '—') + '</td>' +
       '</tr>';
   }).join('');
 }
@@ -897,6 +1007,55 @@ document.getElementById('heatStabForm').addEventListener('submit', async functio
 document.getElementById('refreshHeatStabBtn').addEventListener('click', async function () {
   const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
   try { await loadHeatStabEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+
+document.getElementById('shortClearingForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('shortClearingSubmit');
+  const errEl = document.getElementById('shortClearingError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('scMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  btn.disabled = true; btn.textContent = 'Logging…';
+  try {
+    await eleApi('enterShortClearing', {
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('scDate').value,
+      shift: document.getElementById('scShift').value,
+      mcNo: document.getElementById('scMcNo').value,
+      clearingVoltageDC: document.getElementById('scClearingVoltageDC').value.trim(),
+      clearingVoltageAC: document.getElementById('scClearingVoltageAC').value.trim(),
+      reactorBalancingMFD: document.getElementById('scReactorBalancingMFD').value.trim(),
+      clearingTimeSec: document.getElementById('scClearingTimeSec').value.trim(),
+      tand1Khz: document.getElementById('scTand1Khz').value.trim(),
+      capToleranceMin: document.getElementById('scCapToleranceMin').value.trim(),
+      capToleranceMax: document.getElementById('scCapToleranceMax').value.trim(),
+      totalQty: document.getElementById('scTotalQty').value || undefined,
+      goodQty: document.getElementById('scGoodQty').value || undefined,
+      rejectQty: document.getElementById('scRejectQty').value || undefined,
+      drumsQty: document.getElementById('scDrumsQty').value || undefined,
+      binsQty: document.getElementById('scBinsQty').value || undefined,
+      weight: document.getElementById('scWeight').value.trim(),
+      operatorName: document.getElementById('scOperatorName').value,
+      remarks: document.getElementById('scRemarks').value.trim(),
+      retestingStamp: document.getElementById('scRetestingStamp').checked,
+      testingRounds: collectScTestingRounds()
+    });
+    document.getElementById('shortClearingForm').reset();
+    document.getElementById('scDate').value = todayStr();
+    buildScTestingGrid();
+    toast('Short Clearing logged — ' + masterBatchNo);
+    await Promise.all([loadBatches(), loadScEntries(), loadScTestResults()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Log Short Clearing'; }
+});
+document.getElementById('refreshScBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadScEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+document.getElementById('refreshScTestBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadScTestResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
 });
 
 if ('serviceWorker' in navigator) {
