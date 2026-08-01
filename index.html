@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.4.0-phase3">
+<meta name="app-version" content="0.5.0-phase4">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -374,6 +374,117 @@
       </form>
     </div>
 
+    <div class="section card hidden" id="weldingCard">
+      <h2>Welding / Lead Soldering &amp; Routing</h2>
+      <form id="weldingForm">
+        <div class="field"><label for="wdMasterBatchNo">Master batch no</label><select id="wdMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="wdDate">Date</label><input type="date" id="wdDate" required></div>
+          <div class="field"><label for="wdShift">Shift</label><select id="wdShift" required></select></div>
+        </div>
+        <div class="field"><label for="wdMcNo">Machine</label><select id="wdMcNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="wdCopperStripWireSize">Copper strip/wire size (sq.mm)</label><input type="text" id="wdCopperStripWireSize"></div>
+          <div class="field"><label for="wdStrippingLength">Stripping length (mm)</label><input type="text" id="wdStrippingLength"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="wdAssemblyDeltaWireType">Assembly delta wire type</label><select id="wdAssemblyDeltaWireType"></select></div>
+          <div class="field"><label for="wdWireGauge">Wire gauge</label><input type="text" id="wdWireGauge" placeholder="1.2mm/0.6mm"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="wdResistor">Resistor</label><input type="text" id="wdResistor"></div>
+          <div class="field"><label for="wdWireColor">Wire color</label><input type="text" id="wdWireColor"></div>
+        </div>
+        <div class="field"><label for="wdMetalTopConnection">Metal top connection</label><select id="wdMetalTopConnection"></select></div>
+        <div class="field-row">
+          <div class="field"><label for="wdTotalQty">Total qty</label><input type="number" id="wdTotalQty" min="0"></div>
+          <div class="field"><label for="wdGoodQty">Good qty</label><input type="number" id="wdGoodQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="wdRejectQty">Reject qty</label><input type="number" id="wdRejectQty" min="0"></div>
+          <div class="field"><label for="wdDrumsQty">Drums qty</label><input type="number" id="wdDrumsQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="wdBinsQty">Bins qty</label><input type="number" id="wdBinsQty" min="0"></div>
+          <div class="field"><label for="wdOperatorName">Operator</label><select id="wdOperatorName"></select></div>
+        </div>
+        <div class="field"><label for="wdRemarks">Remarks</label><input type="text" id="wdRemarks"></div>
+        <div class="form-error" id="weldingError"></div>
+        <button type="submit" class="btn-primary full" id="weldingSubmit">Log Welding</button>
+      </form>
+    </div>
+
+    <div class="section card hidden" id="pouringCuringCard">
+      <h2>Pouring &amp; Soaking/Curing <span class="hint">(Kvar, Aircon &amp; Oil capacitors)</span></h2>
+      <form id="pouringCuringForm">
+        <div class="field"><label for="pcMasterBatchNo">Master batch no</label><select id="pcMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="pcDate">Date</label><input type="date" id="pcDate" required></div>
+          <div class="field"><label for="pcShift">Shift</label><select id="pcShift" required></select></div>
+        </div>
+        <div class="field"><label for="pcMcNo">Machine</label><select id="pcMcNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="pcResinWeight">Resin weight (grams/Kg)</label><input type="text" id="pcResinWeight"></div>
+          <div class="field"><label for="pcCapacitorWeight">Capacitor weight (grams/Kg)</label><input type="text" id="pcCapacitorWeight"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="pcTotalQty">Total qty</label><input type="number" id="pcTotalQty" min="0"></div>
+          <div class="field"><label for="pcGoodQty">Good qty</label><input type="number" id="pcGoodQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="pcRejectQty">Reject qty</label><input type="number" id="pcRejectQty" min="0"></div>
+          <div class="field"><label for="pcDrumsQty">Drums qty</label><input type="number" id="pcDrumsQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="pcBinsQty">Bins qty</label><input type="number" id="pcBinsQty" min="0"></div>
+          <div class="field"><label for="pcOperatorName">Operator</label><select id="pcOperatorName"></select></div>
+        </div>
+        <div class="field"><label for="pcRemarks">Remarks</label><input type="text" id="pcRemarks"></div>
+        <div class="form-error" id="pouringCuringError"></div>
+        <button type="submit" class="btn-primary full" id="pouringCuringSubmit">Log Pouring &amp; Curing</button>
+      </form>
+    </div>
+
+    <div class="section card hidden" id="electricalPackingCard">
+      <h2>Pouring, Electrical Testing, Laser Printing &amp; Packing <span class="hint">(Auto/Manual Assembly)</span></h2>
+      <form id="electricalPackingForm">
+        <div class="field"><label for="epMasterBatchNo">Master batch no</label><select id="epMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="epDate">Date</label><input type="date" id="epDate" required></div>
+          <div class="field"><label for="epShift">Shift</label><select id="epShift" required></select></div>
+        </div>
+        <div class="field"><label for="epMcNo">Machine</label><select id="epMcNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="epKV">KV</label><input type="text" id="epKV"></div>
+          <div class="field"><label for="epVdcForSec">Vdc for Sec.</label><input type="text" id="epVdcForSec"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="epIPA">IPA</label><input type="text" id="epIPA"></div>
+          <div class="field"><label for="epBatchLotNo">Batch No./Lot No.</label><input type="text" id="epBatchLotNo"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="epCapTolerance">Cap tolerance</label><input type="text" id="epCapTolerance"></div>
+          <div class="field"><label for="epMFD">MFD</label><input type="text" id="epMFD"></div>
+        </div>
+        <div class="field"><label for="epTand">Tand @ 1KHz/100Hz/50Hz</label><input type="text" id="epTand"></div>
+        <div class="field-row">
+          <div class="field"><label for="epTotalQty">Total qty</label><input type="number" id="epTotalQty" min="0"></div>
+          <div class="field"><label for="epGoodQty">Good qty</label><input type="number" id="epGoodQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="epRejectQty">Reject qty</label><input type="number" id="epRejectQty" min="0"></div>
+          <div class="field"><label for="epDrumsQty">Drums qty</label><input type="number" id="epDrumsQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="epBinsQty">Bins qty</label><input type="number" id="epBinsQty" min="0"></div>
+          <div class="field"><label for="epOperatorName">Operator</label><select id="epOperatorName"></select></div>
+        </div>
+        <div class="field"><label for="epRemarks">Remarks</label><input type="text" id="epRemarks"></div>
+        <div class="form-error" id="electricalPackingError"></div>
+        <button type="submit" class="btn-primary full" id="electricalPackingSubmit">Log Electrical Testing &amp; Packing</button>
+      </form>
+    </div>
+
     <div class="section">
       <div class="toolbar"><h2 style="margin:0">Batches</h2><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
       <table>
@@ -421,6 +532,30 @@
         <tbody id="scTestTableBody"></tbody>
       </table>
     </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Welding entries</h2><button class="btn-ghost" id="refreshWdBtn">Refresh</button><span class="freshness-label" id="wdFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="wdTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Pouring &amp; Curing entries</h2><button class="btn-ghost" id="refreshPcBtn">Refresh</button><span class="freshness-label" id="pcFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="pcTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Electrical Testing &amp; Packing entries</h2><button class="btn-ghost" id="refreshEpBtn">Refresh</button><span class="freshness-label" id="epFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="epTableBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -437,7 +572,10 @@ const state = {
   sprayEntries: [], sprayLastUpdated: null,
   heatStabEntries: [], heatStabLastUpdated: null,
   scEntries: [], scLastUpdated: null,
-  scTestResults: [], scTestLastUpdated: null
+  scTestResults: [], scTestLastUpdated: null,
+  wdEntries: [], wdLastUpdated: null,
+  pcEntries: [], pcLastUpdated: null,
+  epEntries: [], epLastUpdated: null
 };
 
 async function callApi(url, action, params) {
@@ -507,6 +645,9 @@ async function enterApp() {
   document.getElementById('sprayCard').classList.toggle('hidden', !who.permissions.enterSpray);
   document.getElementById('heatStabCard').classList.toggle('hidden', !who.permissions.enterHeatStab);
   document.getElementById('shortClearingCard').classList.toggle('hidden', !who.permissions.enterShortClearing);
+  document.getElementById('weldingCard').classList.toggle('hidden', !who.permissions.enterWelding);
+  document.getElementById('pouringCuringCard').classList.toggle('hidden', !who.permissions.enterPouringCuring);
+  document.getElementById('electricalPackingCard').classList.toggle('hidden', !who.permissions.enterElectricalPacking);
 
   show('appShell');
 
@@ -532,12 +673,26 @@ async function enterApp() {
   fillSelect('scShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('scMcNo', state.dropdowns.Machines_ShortClearing || [], 'Select…');
   fillSelect('scOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('wdShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('wdMcNo', state.dropdowns.Machines_Welding || [], 'Select…');
+  fillSelect('wdAssemblyDeltaWireType', state.dropdowns.AssemblyDeltaWireType || [], 'Select…');
+  fillSelect('wdMetalTopConnection', state.dropdowns.MetalTopConnection || [], 'Select…');
+  fillSelect('wdOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('pcShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('pcMcNo', state.dropdowns.Machines_PouringCuring || [], 'Select…');
+  fillSelect('pcOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('epShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('epMcNo', state.dropdowns.Machines_ElectricalPacking || [], 'Select…');
+  fillSelect('epOperatorName', state.dropdowns.Staff || [], 'Select…');
   document.getElementById('customerOptions').innerHTML = (state.dropdowns.CustomerNames || []).map(function (c) { return '<option value="' + escapeHtml(c) + '">'; }).join('');
   document.getElementById('cbDate').value = todayStr();
   document.getElementById('lsDate').value = todayStr();
   document.getElementById('spDate').value = todayStr();
   document.getElementById('hsDate').value = todayStr();
   document.getElementById('scDate').value = todayStr();
+  document.getElementById('wdDate').value = todayStr();
+  document.getElementById('pcDate').value = todayStr();
+  document.getElementById('epDate').value = todayStr();
   buildFilmLoadGrid();
   buildSprayReadingsGrid();
   buildScTestingGrid();
@@ -547,7 +702,7 @@ async function enterApp() {
     document.getElementById('fgOptions').innerHTML = state.fgCatalog.map(function (f) { return '<option value="' + escapeHtml(f.code + ' — ' + f.name) + '">'; }).join('');
   }
 
-  await Promise.all([loadBatches(), loadWindingEntries(), loadSprayEntries(), loadHeatStabEntries(), loadScEntries(), loadScTestResults()]);
+  await Promise.all([loadBatches(), loadWindingEntries(), loadSprayEntries(), loadHeatStabEntries(), loadScEntries(), loadScTestResults(), loadWdEntries(), loadPcEntries(), loadEpEntries()]);
   setInterval(function () {
     if (document.visibilityState !== 'visible') return;
     loadBatches().catch(function (err) { console.error(err); });
@@ -556,6 +711,9 @@ async function enterApp() {
     loadHeatStabEntries().catch(function (err) { console.error(err); });
     loadScEntries().catch(function (err) { console.error(err); });
     loadScTestResults().catch(function (err) { console.error(err); });
+    loadWdEntries().catch(function (err) { console.error(err); });
+    loadPcEntries().catch(function (err) { console.error(err); });
+    loadEpEntries().catch(function (err) { console.error(err); });
   }, 45000);
   setInterval(updateFreshnessLabels, 20000);
 }
@@ -656,7 +814,8 @@ function collectScTestingRounds() {
 function updateFreshnessLabels() {
   [['batchesFreshness', 'batchesLastUpdated'], ['windingFreshness', 'windingLastUpdated'],
    ['sprayFreshness', 'sprayLastUpdated'], ['heatStabFreshness', 'heatStabLastUpdated'],
-   ['scFreshness', 'scLastUpdated'], ['scTestFreshness', 'scTestLastUpdated']].forEach(function (pair) {
+   ['scFreshness', 'scLastUpdated'], ['scTestFreshness', 'scTestLastUpdated'],
+   ['wdFreshness', 'wdLastUpdated'], ['pcFreshness', 'pcLastUpdated'], ['epFreshness', 'epLastUpdated']].forEach(function (pair) {
     const el = document.getElementById(pair[0]);
     if (el) el.textContent = 'Updated ' + timeAgo(state[pair[1]]);
   });
@@ -713,6 +872,24 @@ function populateBatchDropdown() {
   scSel.innerHTML = scReady.length
     ? scReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
     : '<option value="">No batches ready for Short Clearing</option>';
+
+  const wdReady = state.batches.filter(function (b) { return b.CurrentStage === 'Short Clearing' && b.Status === 'In Process'; });
+  const wdSel = document.getElementById('wdMasterBatchNo');
+  wdSel.innerHTML = wdReady.length
+    ? wdReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for Welding</option>';
+
+  const pcReady = state.batches.filter(function (b) { return b.CurrentStage === 'Welding' && b.Status === 'In Process'; });
+  const pcSel = document.getElementById('pcMasterBatchNo');
+  pcSel.innerHTML = pcReady.length
+    ? pcReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for Pouring &amp; Curing</option>';
+
+  const epReady = state.batches.filter(function (b) { return b.CurrentStage === 'Pouring & Curing' && b.Status === 'In Process'; });
+  const epSel = document.getElementById('epMasterBatchNo');
+  epSel.innerHTML = epReady.length
+    ? epReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for Electrical Testing &amp; Packing</option>';
 }
 
 async function loadWindingEntries() {
@@ -827,6 +1004,44 @@ function renderScTestResults() {
       '<td class="mono" data-label="Rejection %">' + escapeHtml(t.RejectionPct || '—') + '</td>' +
       '</tr>';
   }).join('');
+}
+
+// Welding, Pouring & Curing, and Electrical Testing & Packing all share the
+// same entry-table shape, so one renderer covers all three instead of
+// tripling near-identical code.
+function renderSimpleEntries(tbodyId, entries) {
+  const body = document.getElementById(tbodyId);
+  if (entries.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No entries yet.</td></tr>'; return; }
+  body.innerHTML = entries.map(function (e) {
+    const date = e.Date ? new Date(e.Date).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(e.MasterBatchNo) + '</td>' +
+      '<td data-label="Date">' + date + '</td>' +
+      '<td data-label="Shift">' + escapeHtml(e.Shift) + '</td>' +
+      '<td data-label="Machine">' + escapeHtml(e.MCNo) + '</td>' +
+      '<td class="mono" data-label="Total Qty">' + escapeHtml(e.TotalQty || '—') + '</td>' +
+      '<td class="mono" data-label="Good Qty">' + escapeHtml(e.GoodQty || '—') + '</td>' +
+      '<td class="mono" data-label="Reject Qty">' + escapeHtml(e.RejectQty || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+async function loadWdEntries() {
+  state.wdEntries = await eleApi('getWeldingEntries');
+  state.wdLastUpdated = new Date();
+  renderSimpleEntries('wdTableBody', state.wdEntries);
+  updateFreshnessLabels();
+}
+async function loadPcEntries() {
+  state.pcEntries = await eleApi('getPouringCuringEntries');
+  state.pcLastUpdated = new Date();
+  renderSimpleEntries('pcTableBody', state.pcEntries);
+  updateFreshnessLabels();
+}
+async function loadEpEntries() {
+  state.epEntries = await eleApi('getElectricalPackingEntries');
+  state.epLastUpdated = new Date();
+  renderSimpleEntries('epTableBody', state.epEntries);
+  updateFreshnessLabels();
 }
 
 document.getElementById('loginForm').addEventListener('submit', async function (e) {
@@ -1056,6 +1271,124 @@ document.getElementById('refreshScBtn').addEventListener('click', async function
 document.getElementById('refreshScTestBtn').addEventListener('click', async function () {
   const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
   try { await loadScTestResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+
+document.getElementById('weldingForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('weldingSubmit');
+  const errEl = document.getElementById('weldingError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('wdMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  btn.disabled = true; btn.textContent = 'Logging…';
+  try {
+    await eleApi('enterWelding', {
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('wdDate').value,
+      shift: document.getElementById('wdShift').value,
+      mcNo: document.getElementById('wdMcNo').value,
+      copperStripWireSize: document.getElementById('wdCopperStripWireSize').value.trim(),
+      strippingLength: document.getElementById('wdStrippingLength').value.trim(),
+      assemblyDeltaWireType: document.getElementById('wdAssemblyDeltaWireType').value,
+      wireGauge: document.getElementById('wdWireGauge').value.trim(),
+      resistor: document.getElementById('wdResistor').value.trim(),
+      wireColor: document.getElementById('wdWireColor').value.trim(),
+      metalTopConnection: document.getElementById('wdMetalTopConnection').value,
+      totalQty: document.getElementById('wdTotalQty').value || undefined,
+      goodQty: document.getElementById('wdGoodQty').value || undefined,
+      rejectQty: document.getElementById('wdRejectQty').value || undefined,
+      drumsQty: document.getElementById('wdDrumsQty').value || undefined,
+      binsQty: document.getElementById('wdBinsQty').value || undefined,
+      operatorName: document.getElementById('wdOperatorName').value,
+      remarks: document.getElementById('wdRemarks').value.trim()
+    });
+    document.getElementById('weldingForm').reset();
+    document.getElementById('wdDate').value = todayStr();
+    toast('Welding logged — ' + masterBatchNo);
+    await Promise.all([loadBatches(), loadWdEntries()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Log Welding'; }
+});
+document.getElementById('refreshWdBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadWdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+
+document.getElementById('pouringCuringForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('pouringCuringSubmit');
+  const errEl = document.getElementById('pouringCuringError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('pcMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  btn.disabled = true; btn.textContent = 'Logging…';
+  try {
+    await eleApi('enterPouringCuring', {
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('pcDate').value,
+      shift: document.getElementById('pcShift').value,
+      mcNo: document.getElementById('pcMcNo').value,
+      resinWeight: document.getElementById('pcResinWeight').value.trim(),
+      capacitorWeight: document.getElementById('pcCapacitorWeight').value.trim(),
+      totalQty: document.getElementById('pcTotalQty').value || undefined,
+      goodQty: document.getElementById('pcGoodQty').value || undefined,
+      rejectQty: document.getElementById('pcRejectQty').value || undefined,
+      drumsQty: document.getElementById('pcDrumsQty').value || undefined,
+      binsQty: document.getElementById('pcBinsQty').value || undefined,
+      operatorName: document.getElementById('pcOperatorName').value,
+      remarks: document.getElementById('pcRemarks').value.trim()
+    });
+    document.getElementById('pouringCuringForm').reset();
+    document.getElementById('pcDate').value = todayStr();
+    toast('Pouring & Curing logged — ' + masterBatchNo);
+    await Promise.all([loadBatches(), loadPcEntries()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Log Pouring & Curing'; }
+});
+document.getElementById('refreshPcBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadPcEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+});
+
+document.getElementById('electricalPackingForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('electricalPackingSubmit');
+  const errEl = document.getElementById('electricalPackingError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('epMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  btn.disabled = true; btn.textContent = 'Logging…';
+  try {
+    await eleApi('enterElectricalPacking', {
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('epDate').value,
+      shift: document.getElementById('epShift').value,
+      mcNo: document.getElementById('epMcNo').value,
+      kv: document.getElementById('epKV').value.trim(),
+      vdcForSec: document.getElementById('epVdcForSec').value.trim(),
+      ipa: document.getElementById('epIPA').value.trim(),
+      batchLotNo: document.getElementById('epBatchLotNo').value.trim(),
+      capTolerance: document.getElementById('epCapTolerance').value.trim(),
+      mfd: document.getElementById('epMFD').value.trim(),
+      tand: document.getElementById('epTand').value.trim(),
+      totalQty: document.getElementById('epTotalQty').value || undefined,
+      goodQty: document.getElementById('epGoodQty').value || undefined,
+      rejectQty: document.getElementById('epRejectQty').value || undefined,
+      drumsQty: document.getElementById('epDrumsQty').value || undefined,
+      binsQty: document.getElementById('epBinsQty').value || undefined,
+      operatorName: document.getElementById('epOperatorName').value,
+      remarks: document.getElementById('epRemarks').value.trim()
+    });
+    document.getElementById('electricalPackingForm').reset();
+    document.getElementById('epDate').value = todayStr();
+    toast('Electrical Testing & Packing logged — ' + masterBatchNo);
+    await Promise.all([loadBatches(), loadEpEntries()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Log Electrical Testing & Packing'; }
+});
+document.getElementById('refreshEpBtn').addEventListener('click', async function () {
+  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
+  try { await loadEpEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
 });
 
 if ('serviceWorker' in navigator) {
