@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.5.0-phase4">
+<meta name="app-version" content="0.5.1-navfix">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -98,6 +98,14 @@
     tbody td { display: flex; justify-content: space-between; gap: 12px; border-bottom: none; padding: 4px 16px; }
     tbody td::before { content: attr(data-label); font-size: 11px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; }
   }
+
+  html { scroll-behavior: smooth; }
+  .quicknav { position: sticky; top: 0; z-index: 20; display: flex; gap: 4px; overflow-x: auto; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+  .quicknav a { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); text-decoration: none; background: var(--paper); border: 1px solid var(--line); white-space: nowrap; }
+  .quicknav a:hover { color: var(--blue-deep); border-color: var(--blue); }
+  .stage-section { padding-top: 8px; margin-top: 8px; }
+  .stage-section:not(:first-child) { border-top: 1px solid var(--line); padding-top: 28px; margin-top: 28px; }
+  .stage-heading { font-size: 19px; font-weight: 700; margin: 0 0 16px; scroll-margin-top: 60px; }
 </style>
 </head>
 <body>
@@ -129,12 +137,37 @@
     </div>
   </div>
 
+  <div class="quicknav" id="quicknav">
+    <a href="#sec-dashboard">Dashboard</a>
+    <a href="#sec-winding">Winding</a>
+    <a href="#sec-spray">Spray</a>
+    <a href="#sec-heatstab">Heat Stab</a>
+    <a href="#sec-shortclearing">Short Clearing</a>
+    <a href="#sec-welding">Welding</a>
+    <a href="#sec-pouringcuring">Pouring &amp; Curing</a>
+    <a href="#sec-elecpacking">Elec. Testing &amp; Packing</a>
+  </div>
+
   <div class="shell">
+    <div class="stage-section" id="sec-dashboard">
+      <h2 class="stage-heading">Dashboard</h2>
     <div class="stat-row">
       <div class="stat-card"><div class="value" id="statTotalBatches">—</div><div class="label">Total batches</div></div>
       <div class="stat-card"><div class="value" id="statInProcess">—</div><div class="label">In process</div></div>
     </div>
 
+      <div class="toolbar"><h2 style="margin:0">Batches</h2><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>FG Code</th><th>Customer</th><th>MFD</th><th>Qty</th><th>Stage</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody id="batchesTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-winding">
+      <h2 class="stage-heading">Winding</h2>
     <div class="section card hidden" id="createBatchCard">
       <h2>Create new batch — Winding</h2>
       <form id="createBatchForm">
@@ -242,6 +275,18 @@
       </form>
     </div>
 
+      <div class="toolbar"><h2 style="margin:0">Winding entries</h2><button class="btn-ghost" id="refreshWindingBtn">Refresh</button><span class="freshness-label" id="windingFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Bins Qty</th><th>Operator</th></tr></thead>
+        <tbody id="windingTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-spray">
+      <h2 class="stage-heading">Spray &amp; Core Cleaning</h2>
     <div class="section card hidden" id="sprayCard">
       <h2>Paper Masking, Fixture Setting, Zinc Spray &amp; Core Cleaning</h2>
       <form id="sprayForm">
@@ -286,6 +331,18 @@
       </form>
     </div>
 
+      <div class="toolbar"><h2 style="margin:0">Spray entries</h2><button class="btn-ghost" id="refreshSprayBtn">Refresh</button><span class="freshness-label" id="sprayFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="sprayTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-heatstab">
+      <h2 class="stage-heading">Heat Stabilization</h2>
     <div class="section card hidden" id="heatStabCard">
       <h2>Heat Stabilization &amp; Paper Unmasking</h2>
       <form id="heatStabForm">
@@ -318,6 +375,18 @@
       </form>
     </div>
 
+      <div class="toolbar"><h2 style="margin:0">Heat Stabilization entries</h2><button class="btn-ghost" id="refreshHeatStabBtn">Refresh</button><span class="freshness-label" id="heatStabFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="heatStabTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-shortclearing">
+      <h2 class="stage-heading">Short Clearing</h2>
     <div class="section card hidden" id="shortClearingCard">
       <h2>Short Clearing</h2>
       <form id="shortClearingForm">
@@ -374,6 +443,26 @@
       </form>
     </div>
 
+      <div class="toolbar"><h2 style="margin:0">Short Clearing entries</h2><button class="btn-ghost" id="refreshScBtn">Refresh</button><span class="freshness-label" id="scFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="scTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="toolbar"><h2 style="margin:0">Short Clearing test results</h2><button class="btn-ghost" id="refreshScTestBtn">Refresh</button><span class="freshness-label" id="scTestFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Round</th><th>Date</th><th>Total</th><th>Good</th><th>Rejection %</th></tr></thead>
+        <tbody id="scTestTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-welding">
+      <h2 class="stage-heading">Welding</h2>
     <div class="section card hidden" id="weldingCard">
       <h2>Welding / Lead Soldering &amp; Routing</h2>
       <form id="weldingForm">
@@ -414,6 +503,18 @@
       </form>
     </div>
 
+      <div class="toolbar"><h2 style="margin:0">Welding entries</h2><button class="btn-ghost" id="refreshWdBtn">Refresh</button><span class="freshness-label" id="wdFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="wdTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-pouringcuring">
+      <h2 class="stage-heading">Pouring &amp; Curing</h2>
     <div class="section card hidden" id="pouringCuringCard">
       <h2>Pouring &amp; Soaking/Curing <span class="hint">(Kvar, Aircon &amp; Oil capacitors)</span></h2>
       <form id="pouringCuringForm">
@@ -445,6 +546,18 @@
       </form>
     </div>
 
+      <div class="toolbar"><h2 style="margin:0">Pouring &amp; Curing entries</h2><button class="btn-ghost" id="refreshPcBtn">Refresh</button><span class="freshness-label" id="pcFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="pcTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-elecpacking">
+      <h2 class="stage-heading">Electrical Testing &amp; Packing</h2>
     <div class="section card hidden" id="electricalPackingCard">
       <h2>Pouring, Electrical Testing, Laser Printing &amp; Packing <span class="hint">(Auto/Manual Assembly)</span></h2>
       <form id="electricalPackingForm">
@@ -486,76 +599,14 @@
     </div>
 
     <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Batches</h2><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>FG Code</th><th>Customer</th><th>MFD</th><th>Qty</th><th>Stage</th><th>Status</th><th>Created</th></tr></thead>
-        <tbody id="batchesTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Winding entries</h2><button class="btn-ghost" id="refreshWindingBtn">Refresh</button><span class="freshness-label" id="windingFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Bins Qty</th><th>Operator</th></tr></thead>
-        <tbody id="windingTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Spray entries</h2><button class="btn-ghost" id="refreshSprayBtn">Refresh</button><span class="freshness-label" id="sprayFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
-        <tbody id="sprayTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Heat Stabilization entries</h2><button class="btn-ghost" id="refreshHeatStabBtn">Refresh</button><span class="freshness-label" id="heatStabFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
-        <tbody id="heatStabTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Short Clearing entries</h2><button class="btn-ghost" id="refreshScBtn">Refresh</button><span class="freshness-label" id="scFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
-        <tbody id="scTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Short Clearing test results</h2><button class="btn-ghost" id="refreshScTestBtn">Refresh</button><span class="freshness-label" id="scTestFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>Round</th><th>Date</th><th>Total</th><th>Good</th><th>Rejection %</th></tr></thead>
-        <tbody id="scTestTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Welding entries</h2><button class="btn-ghost" id="refreshWdBtn">Refresh</button><span class="freshness-label" id="wdFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
-        <tbody id="wdTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Pouring &amp; Curing entries</h2><button class="btn-ghost" id="refreshPcBtn">Refresh</button><span class="freshness-label" id="pcFreshness"></span></div>
-      <table>
-        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
-        <tbody id="pcTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="section">
       <div class="toolbar"><h2 style="margin:0">Electrical Testing &amp; Packing entries</h2><button class="btn-ghost" id="refreshEpBtn">Refresh</button><span class="freshness-label" id="epFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="epTableBody"></tbody>
       </table>
     </div>
+    </div>
+
   </div>
 </div>
 
