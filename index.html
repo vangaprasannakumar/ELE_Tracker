@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.6.1">
+<meta name="app-version" content="0.6.0">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -174,6 +174,23 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(15px) scale(0.97); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; padding: 14px 20px; border-radius: 12px; font-size: 13.5px; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); opacity: 0; transition: all 0.3s var(--spring); pointer-events: none; z-index: 200; max-width: 90vw; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   .toast.error { background: var(--critical); border-color: transparent; }
+
+  #batchesTableBody tr { cursor: pointer; }
+  #batchesTableBody tr:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); overflow-y: auto; animation: fadeIn 0.2s var(--ease); }
+  .modal-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lift); width: 100%; max-width: 720px; max-height: calc(100vh - 80px); display: flex; flex-direction: column; animation: slideUpFade 0.3s var(--spring) both; }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+  .modal-body { padding: 20px 24px; overflow-y: auto; }
+  .report-kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px 16px; margin-bottom: 22px; padding-bottom: 20px; border-bottom: 1px solid var(--line-soft); }
+  .report-kv .rk-label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-faint); margin-bottom: 2px; }
+  .report-kv .rk-value { display: block; font-size: 13.5px; font-weight: 600; }
+  .report-stage { padding: 12px 0; border-top: 1px solid var(--line-soft); }
+  .report-stage:first-of-type { border-top: none; padding-top: 0; }
+  .report-stage-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .report-stage-head h4 { margin: 0; font-size: 13px; font-weight: 700; }
+  .report-line { font-size: 12.5px; color: var(--ink-soft); padding: 4px 0; }
+  .report-empty { font-size: 12px; color: var(--ink-faint); font-style: italic; }
 
   @media (max-width: 600px) {
     .field-row { grid-template-columns: 1fr; }
@@ -831,6 +848,21 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal-overlay hidden" id="batchReportOverlay">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <h2 class="mono" id="brMasterBatchNo" style="margin:0 0 4px">—</h2>
+        <div class="lede" id="brSubline" style="margin:0"></div>
+      </div>
+      <button class="btn-ghost theme-btn" id="brCloseBtn" title="Close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="brBody"></div>
+  </div>
+</div>
+
 <script>
 const ELE_API_URL = 'https://script.google.com/macros/s/AKfycbwnOBDgyaLOGixNGGfq9mGjDV_DOHc4D8hVjkB83_yH1uQ5Gxd7zKGbQNggMmbtFXM3IQ/exec';
 const STOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwgMLr8mcNt402VpdDNkrrPpa0VuhwLs5xdZAtuJx9Iy_LQcKxXpxCO_mZfbCOGPn6Z/exec';
@@ -1260,7 +1292,7 @@ function renderBatches() {
   if (rows.length === 0) { body.innerHTML = '<tr><td colspan="8" class="empty">' + (state.batchSearch ? 'No batches match your search.' : 'No batches yet.') + '</td></tr>'; return; }
   body.innerHTML = rows.map(function (b) {
     const created = b.CreatedDate ? new Date(b.CreatedDate).toLocaleDateString() : '—';
-    return '<tr>' +
+    return '<tr data-batch="' + escapeHtml(b.MasterBatchNo) + '">' +
       '<td class="mono" data-label="Master Batch No">' + escapeHtml(b.MasterBatchNo) + '</td>' +
       '<td data-label="FG Code">' + escapeHtml(b.FGCode) + '</td>' +
       '<td data-label="Customer">' + escapeHtml(b.CustomerName || '—') + '</td>' +
@@ -1272,6 +1304,68 @@ function renderBatches() {
       '</tr>';
   }).join('');
 }
+
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—'; }
+function matchBatch(list, masterBatchNo) { return list.filter(function (e) { return e.MasterBatchNo === masterBatchNo; }); }
+function reportKv(label, value) {
+  return '<div><span class="rk-label">' + escapeHtml(label) + '</span><span class="rk-value">' + escapeHtml(value == null || value === '' ? '—' : value) + '</span></div>';
+}
+// Shared line format for the 7 stages that share the same shape: Date,
+// Shift, Machine, Total/Good/Reject qty, Operator.
+function productionLine(e) {
+  return fmtDate(e.Date) + ' · Shift ' + (e.Shift || '—') + ' · ' + (e.MCNo || '—') +
+    ' — Total ' + (e.TotalQty || '—') + ', Good ' + (e.GoodQty || '—') + ', Reject ' + (e.RejectQty || '—') + ' · ' + (e.OperatorName || '—');
+}
+function reportStage(label, rows, lineFn, extraHtml) {
+  const body = rows.length === 0
+    ? '<div class="report-empty">Not logged yet.</div>'
+    : rows.map(function (e) { return '<div class="report-line">' + escapeHtml(lineFn(e)) + '</div>'; }).join('');
+  return '<div class="report-stage"><div class="report-stage-head"><h4>' + escapeHtml(label) + '</h4></div>' + body + (extraHtml || '') + '</div>';
+}
+
+// Batch report modal — pulls each stage's already-loaded entries for one
+// MasterBatchNo. Nothing is re-fetched; it's a client-side filter over
+// what enterApp() already loaded, so it opens instantly.
+function openBatchReport(masterBatchNo) {
+  const b = state.batches.filter(function (x) { return x.MasterBatchNo === masterBatchNo; })[0];
+  if (!b) return;
+
+  document.getElementById('brMasterBatchNo').textContent = b.MasterBatchNo;
+  document.getElementById('brSubline').textContent = b.FGCode + ' — ' + (b.CustomerName || 'No customer');
+
+  let html = '<div class="report-kv">' +
+    reportKv('Stage', b.CurrentStage) + reportKv('Status', b.Status) +
+    reportKv('MFD', b.MFD) + reportKv('Voltage', b.Voltage) +
+    reportKv('Batch Qty', b.BatchQty) + reportKv('Drawing No', b.DrawingNo) +
+    reportKv('Created By', b.CreatedBy) + reportKv('Created', fmtDate(b.CreatedDate)) +
+    '</div>';
+
+  html += reportStage('Winding', matchBatch(state.windingEntries, masterBatchNo), function (e) {
+    return fmtDate(e.Date) + ' · Shift ' + (e.Shift || '—') + ' · ' + (e.MCNo || '—') +
+      ' — Total ' + (e.TotalQty || '—') + ', Bins ' + (e.BinsQty || '—') + ' · ' + (e.OperatorName || '—');
+  });
+  html += reportStage('Spray & Core Cleaning', matchBatch(state.sprayEntries, masterBatchNo), productionLine);
+  html += reportStage('Heat Stabilization', matchBatch(state.heatStabEntries, masterBatchNo), productionLine);
+
+  const scTest = matchBatch(state.scTestResults, masterBatchNo);
+  const scExtra = scTest.map(function (t) {
+    return '<div class="report-line">' + escapeHtml(t.RoundType + ' — Total ' + (t.TotalQty || '—') + ', Good ' + (t.GoodQty || '—') + ', Rejection ' + (t.RejectionPct || '—') + '%') + '</div>';
+  }).join('');
+  html += reportStage('Short Clearing', matchBatch(state.scEntries, masterBatchNo), productionLine, scExtra);
+
+  html += reportStage('Welding', matchBatch(state.wdEntries, masterBatchNo), productionLine);
+  html += reportStage('Pouring & Curing', matchBatch(state.pcEntries, masterBatchNo), productionLine);
+  html += reportStage('Electrical Testing & Packing', matchBatch(state.epEntries, masterBatchNo), productionLine);
+  html += reportStage('BDV & Final Testing', matchBatch(state.bdEntries, masterBatchNo), productionLine);
+
+  html += reportStage('Final QA', matchBatch(state.finalQaResults, masterBatchNo), function (r) {
+    return r.TestType + ' — Sample ' + r.SampleID + ': ' + (r.Reading || '—') + (r.FOAInspectorName ? ' · FOA: ' + r.FOAInspectorName : '');
+  });
+
+  document.getElementById('brBody').innerHTML = html;
+  document.getElementById('batchReportOverlay').classList.remove('hidden');
+}
+function closeBatchReport() { document.getElementById('batchReportOverlay').classList.add('hidden'); }
 function populateBatchDropdown() {
   const windingReady = state.batches.filter(function (b) { return b.CurrentStage === 'Winding' && b.Status === 'In Process'; });
   const lsSel = document.getElementById('lsMasterBatchNo');
@@ -1530,6 +1624,18 @@ document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme)
 document.getElementById('batchSearchInput').addEventListener('input', function () {
   state.batchSearch = this.value.trim().toLowerCase();
   renderBatches();
+});
+
+document.getElementById('batchesTableBody').addEventListener('click', function (e) {
+  const row = e.target.closest('tr[data-batch]');
+  if (row) openBatchReport(row.getAttribute('data-batch'));
+});
+document.getElementById('brCloseBtn').addEventListener('click', closeBatchReport);
+document.getElementById('batchReportOverlay').addEventListener('click', function (e) {
+  if (e.target === this) closeBatchReport();
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && !document.getElementById('batchReportOverlay').classList.contains('hidden')) closeBatchReport();
 });
 
 document.getElementById('createBatchForm').addEventListener('submit', async function (e) {
