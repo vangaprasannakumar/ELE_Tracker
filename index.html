@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.5.1-navfix">
+<meta name="app-version" content="0.6.1">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -14,103 +14,211 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
+    /* Light theme */
     --paper: #f8fafc; --panel: #ffffff;
     --ink: #0f172a; --ink-soft: #475569; --ink-faint: #94a3b8;
     --line: #e2e8f0; --line-soft: #f1f5f9;
     --blue: #3b82f6; --blue-deep: #1d4ed8; --blue-soft: #eff6ff;
-    --critical: #ef4444; --ok: #10b981;
+    --copper: #f59e0b; --copper-deep: #b45309; --copper-soft: #fffbeb;
+    --violet: #8b5cf6; --violet-soft: #f5f3ff;
+    --ok: #10b981; --ok-soft: #ecfdf5;
+    --critical: #ef4444; --critical-soft: #fef2f2;
     --radius: 16px; --radius-sm: 10px;
+    --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04);
     --shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
     --shadow-lift: 0 12px 24px -6px rgba(15, 23, 42, 0.12), 0 4px 10px -4px rgba(15, 23, 42, 0.08);
+    --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.2);
     --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
     --font-ui: 'Space Grotesk', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
+  /* Dark theme — toggled via data-theme="dark" on <html> */
+  [data-theme="dark"] {
+    --paper: #020617; --panel: #0f172a;
+    --ink: #f8fafc; --ink-soft: #cbd5e1; --ink-faint: #64748b;
+    --line: #334155; --line-soft: #1e293b;
+    --blue-soft: rgba(59, 130, 246, 0.15);
+    --copper-soft: rgba(245, 158, 11, 0.15);
+    --violet-soft: rgba(139, 92, 246, 0.15);
+    --ok-soft: rgba(16, 185, 129, 0.15);
+    --critical-soft: rgba(239, 68, 68, 0.15);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 12px 24px -6px rgba(0, 0, 0, 0.6);
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: var(--font-ui); background: var(--paper); color: var(--ink); }
-  .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  body {
+    margin: 0; font-family: var(--font-ui); background-color: var(--paper); color: var(--ink);
+    -webkit-font-smoothing: antialiased; transition: background-color 0.3s, color 0.3s;
+    background-image: radial-gradient(circle at 15% 0%, rgba(59, 130, 246, 0.06) 0, transparent 40%), radial-gradient(circle at 85% 100%, rgba(245, 158, 11, 0.05) 0, transparent 40%);
+    background-attachment: fixed;
+  }
+  [data-theme="dark"] body { background-image: radial-gradient(circle at 15% 0%, rgba(59, 130, 246, 0.05) 0, transparent 40%), radial-gradient(circle at 85% 100%, rgba(245, 158, 11, 0.04) 0, transparent 40%); }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+  @keyframes pulseFade { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes charge { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.85; transform: scale(0.97); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes orbFloat { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, -16px) scale(1.08); } }
+  @keyframes splashGlow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  .spinner-dark { border-color: rgba(15,23,42,0.15); border-top-color: var(--ink); }
+
+  /* Splash / initial-load screen */
+  #initialLoader { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: var(--paper); transition: opacity 0.55s var(--ease), visibility 0.55s; }
+  #initialLoader.loader-exit { opacity: 0; visibility: hidden; pointer-events: none; }
+  .splash-orbs { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .splash-orb { position: absolute; border-radius: 50%; filter: blur(72px); animation: orbFloat 9s ease-in-out infinite; }
+  .splash-orb.orb-blue { width: 340px; height: 340px; background: rgba(59, 130, 246, 0.22); top: -80px; left: -60px; }
+  .splash-orb.orb-copper { width: 280px; height: 280px; background: rgba(245, 158, 11, 0.18); bottom: -60px; right: -40px; animation-delay: -3s; }
+  [data-theme="dark"] .splash-orb.orb-blue { background: rgba(59, 130, 246, 0.14); }
+  [data-theme="dark"] .splash-orb.orb-copper { background: rgba(245, 158, 11, 0.1); }
+  .splash-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px; animation: slideUpFade 0.7s var(--spring) both; }
+  .splash-logo-wrap { position: relative; width: 92px; height: 92px; margin-bottom: 24px; }
+  .splash-ring { position: absolute; inset: -3px; border-radius: 22px; padding: 2px; background: conic-gradient(from 0deg, var(--blue), var(--violet), var(--copper), var(--blue)); animation: spin 2.4s linear infinite; opacity: 0.9; }
+  .splash-logo-inner { position: absolute; inset: 3px; background: var(--paper); border-radius: 18px; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--shadow-lift); }
+  .splash-logo-inner img { width: 66px; height: 66px; object-fit: contain; border-radius: 12px; animation: charge 2.2s ease-in-out infinite; }
+  .splash-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; color: var(--ink); }
+  .splash-sub { font-size: 11.5px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.14em; margin: 0 0 28px; animation: splashGlow 2.4s ease-in-out infinite; }
+  .splash-progress { width: min(260px, 78vw); height: 4px; background: var(--line-soft); border-radius: 99px; overflow: hidden; margin-bottom: 12px; box-shadow: inset 0 1px 2px rgba(15,23,42,0.06); }
+  .splash-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--violet)); border-radius: 99px; transition: width 0.45s var(--ease); position: relative; }
+  .splash-progress-bar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent); animation: shimmer 1.4s ease infinite; background-size: 200% 100%; }
+  .splash-status { font-size: 12.5px; font-weight: 500; color: var(--ink-soft); min-height: 18px; margin: 0; }
+  #appProgressBar { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: linear-gradient(90deg, var(--blue), var(--violet)); z-index: 10000; opacity: 0; transition: opacity 0.2s, width 0.3s var(--ease); pointer-events: none; }
+  #appProgressBar.active { opacity: 1; }
+
+  .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; position: relative; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
-  .auth-card { width: 100%; max-width: 420px; box-shadow: var(--shadow-lift); padding: 32px; }
+  .auth-card { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line); box-shadow: var(--shadow-lift); padding: 32px; animation: slideUpFade 0.6s var(--spring) both; }
+  [data-theme="dark"] .auth-card { background: rgba(15, 23, 42, 0.85); }
   .brand { display: flex; align-items: center; gap: 10px; }
   .brand img { height: 30px; width: auto; border-radius: 6px; }
   .brand-name { font-weight: 700; font-size: 15px; }
   .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--blue); text-transform: uppercase; }
-  h1 { font-size: 22px; margin: 8px 0 4px; }
+  h1 { font-size: 22px; margin: 8px 0 4px; letter-spacing: -0.02em; }
   h2 { font-size: 16px; margin: 0 0 14px; }
   h3 { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); margin: 20px 0 10px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
   h3:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
   .lede { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; line-height: 1.5; }
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px; }
-  .field input, .field select { width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: var(--font-ui); font-size: 14.5px; }
-  .field input:focus-visible, .field select:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .field input, .field select { width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid transparent; background: var(--line-soft); color: var(--ink); font-family: var(--font-ui); font-size: 14.5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s var(--ease); }
+  [data-theme="dark"] .field input, [data-theme="dark"] .field select { border: 1px solid var(--line); }
+  .field input:hover, .field select:hover { filter: brightness(0.97); }
+  .field input:focus, .field select:focus { background: var(--panel); border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); outline: none; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .field-checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
   .field-checkbox label { font-size: 13.5px; color: var(--ink); text-transform: none; font-weight: 500; }
-  .btn-primary { padding: 12px 20px; border-radius: var(--radius-sm); border: none; background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color: #fff; font-family: var(--font-ui); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: transform 0.15s var(--spring); }
+  .btn-primary { padding: 12px 20px; border-radius: var(--radius-sm); border: none; background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color: #fff; font-family: var(--font-ui); font-weight: 600; font-size: 14.5px; cursor: pointer; box-shadow: var(--shadow-glow); transition: all 0.2s var(--ease); }
   .btn-primary.full { width: 100%; }
-  .btn-primary:hover { transform: translateY(-1px); }
-  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-  .btn-ghost { padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink); font-family: var(--font-ui); font-weight: 600; font-size: 13.5px; cursor: pointer; }
-  .btn-text { background: none; border: none; color: var(--blue); font-weight: 600; font-size: 12.5px; cursor: pointer; padding: 0; }
-  .form-error { color: var(--critical); font-size: 13px; margin: 6px 0 14px; min-height: 1em; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3); }
+  .btn-primary:active { transform: translateY(0) scale(0.98); }
+  .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-ghost { padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--panel); color: var(--ink-soft); font-family: var(--font-ui); font-weight: 600; font-size: 13.5px; cursor: pointer; box-shadow: var(--shadow-sm); transition: all 0.2s var(--ease); }
+  .btn-ghost:hover { border-color: var(--blue); color: var(--blue); box-shadow: var(--shadow); transform: translateY(-1px); }
+  .btn-ghost:active { transform: scale(0.97); }
+  .btn-ghost:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+  .theme-btn { padding: 8px; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; }
+  .btn-text { background: none; border: none; color: var(--blue); font-weight: 600; font-size: 12.5px; cursor: pointer; padding: 0; transition: color 0.2s; }
+  .btn-text:hover { color: var(--blue-deep); text-decoration: underline; }
+  .form-error { color: var(--critical); font-size: 13.5px; font-weight: 500; background: var(--critical-soft); border-left: 4px solid var(--critical); border-radius: 8px; padding: 10px 14px; margin: 6px 0 14px; min-height: 1em; animation: slideUpFade 0.3s var(--ease); }
+  .form-error:empty { display: none; padding: 0; border: none; background: none; }
   .hidden { display: none !important; }
-  .loader { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 13px; }
 
-  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 10px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 40; background: rgba(248, 250, 252, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  [data-theme="dark"] .topbar { background: rgba(15, 23, 42, 0.75); }
   .who-inline { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--ink-soft); }
   .who-inline .name { font-weight: 700; color: var(--ink); }
-  .shell { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+  .shell { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; animation: fadeIn 0.4s var(--ease) both; }
   .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-  .stat-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .stat-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; animation: slideUpFade 0.5s var(--spring) backwards; }
+  .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--blue), var(--violet), var(--copper)); opacity: 0.7; }
+  .stat-row .stat-card:nth-child(2) { animation-delay: 0.06s; }
   .stat-card .value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; }
   .stat-card .label { font-size: 12px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
 
   .section { margin-bottom: 24px; }
   .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search-input { flex: 1 1 200px; max-width: 320px; padding: 8px 14px; border-radius: 20px; border: 1px solid transparent; background: var(--line-soft); color: var(--ink); font-family: var(--font-ui); font-size: 13px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s var(--ease); }
+  [data-theme="dark"] .search-input { border: 1px solid var(--line); }
+  .search-input:focus { background: var(--panel); border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); outline: none; }
+  .search-input::placeholder { color: var(--ink-faint); }
   .freshness-label { color: var(--ink-faint); font-size: 12.5px; margin-left: auto; }
 
-  table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-  thead th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--line-soft); }
-  tbody td { padding: 12px 16px; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); }
-  tbody tr:last-child td { border-bottom: none; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 6px; margin-top: -6px; background: transparent; }
+  thead th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); padding: 10px 16px; }
+  tbody tr { background: var(--panel); box-shadow: 0 2px 6px rgba(15,23,42,0.03); border-radius: 12px; animation: slideUpFade 0.4s var(--spring) backwards; }
+  [data-theme="dark"] tbody tr { box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 1px solid var(--line); }
+  tbody tr:nth-child(1) { animation-delay: 0.03s; } tbody tr:nth-child(2) { animation-delay: 0.06s; } tbody tr:nth-child(3) { animation-delay: 0.09s; } tbody tr:nth-child(4) { animation-delay: 0.12s; } tbody tr:nth-child(5) { animation-delay: 0.15s; }
+  tbody td { padding: 12px 16px; font-size: 13.5px; border-bottom: none; }
+  tbody td:first-child { border-radius: 12px 0 0 12px; }
+  tbody td:last-child { border-radius: 0 12px 12px 0; }
   td.mono { font-family: var(--font-mono); font-size: 12.5px; }
-  td.empty { text-align: center; padding: 32px; color: var(--ink-faint); }
-  .status-pill { display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; background: var(--blue-soft); color: var(--blue-deep); }
+  td.empty { text-align: center; padding: 32px; color: var(--ink-faint); background: transparent !important; box-shadow: none !important; }
+  .status-pill { display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; background: var(--blue-soft); color: var(--blue-deep); border: 1px solid transparent; }
+  .status-pill.ok { background: var(--ok-soft); color: var(--ok); }
 
   .flgrid { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
   .flgrid th { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; padding: 6px; text-align: center; }
   .flgrid td { padding: 3px; }
-  .flgrid input { width: 100%; padding: 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); font-size: 13px; text-align: center; }
+  .flgrid input { width: 100%; padding: 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); font-size: 13px; text-align: center; transition: all 0.2s var(--ease); }
+  .flgrid input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); outline: none; }
   .flgrid td.sno { text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--paper); padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13.5px; box-shadow: var(--shadow-lift); opacity: 0; transition: all 0.25s var(--spring); pointer-events: none; z-index: 100; max-width: 90vw; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.error { background: var(--critical); }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(15px) scale(0.97); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; padding: 14px 20px; border-radius: 12px; font-size: 13.5px; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); opacity: 0; transition: all 0.3s var(--spring); pointer-events: none; z-index: 200; max-width: 90vw; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  .toast.error { background: var(--critical); border-color: transparent; }
 
   @media (max-width: 600px) {
     .field-row { grid-template-columns: 1fr; }
     .stat-row { grid-template-columns: 1fr; }
+    .search-input { max-width: none; flex-basis: 100%; }
     .who-inline span:not(.name) { display: none; }
     table, thead, tbody, tr { display: block; }
     thead { display: none; }
-    tbody tr { border-bottom: 1px solid var(--line); padding: 10px 0; }
+    tbody tr { border-bottom: 1px solid var(--line); padding: 10px 0; margin-bottom: 8px; }
     tbody td { display: flex; justify-content: space-between; gap: 12px; border-bottom: none; padding: 4px 16px; }
     tbody td::before { content: attr(data-label); font-size: 11px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; }
   }
 
   html { scroll-behavior: smooth; }
-  .quicknav { position: sticky; top: 0; z-index: 20; display: flex; gap: 4px; overflow-x: auto; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); scrollbar-width: thin; }
-  .quicknav a { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); text-decoration: none; background: var(--paper); border: 1px solid var(--line); white-space: nowrap; }
-  .quicknav a:hover { color: var(--blue-deep); border-color: var(--blue); }
-  .stage-section { padding-top: 8px; margin-top: 8px; }
+  .quicknav { position: sticky; top: 70px; z-index: 20; display: flex; gap: 4px; overflow-x: auto; padding: 10px 16px; background: rgba(248, 250, 252, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+  [data-theme="dark"] .quicknav { background: rgba(15, 23, 42, 0.75); }
+  .quicknav a { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); text-decoration: none; background: var(--panel); border: 1px solid var(--line); white-space: nowrap; box-shadow: var(--shadow-sm); transition: all 0.2s var(--spring); }
+  .quicknav a:hover { color: var(--blue-deep); border-color: var(--blue); transform: translateY(-1px); box-shadow: var(--shadow); }
+  .stage-section { padding-top: 8px; margin-top: 8px; scroll-margin-top: 130px; }
   .stage-section:not(:first-child) { border-top: 1px solid var(--line); padding-top: 28px; margin-top: 28px; }
-  .stage-heading { font-size: 19px; font-weight: 700; margin: 0 0 16px; scroll-margin-top: 60px; }
+  .stage-heading { font-size: 19px; font-weight: 700; margin: 0 0 16px; letter-spacing: -0.01em; }
 </style>
 </head>
 <body>
 
-<div id="initialLoader" class="loader">Loading…</div>
+<div id="appProgressBar" aria-hidden="true"></div>
+
+<div id="initialLoader" aria-live="polite" aria-busy="true">
+  <div class="splash-orbs">
+    <div class="splash-orb orb-blue"></div>
+    <div class="splash-orb orb-copper"></div>
+  </div>
+  <div class="splash-content">
+    <div class="splash-logo-wrap">
+      <div class="splash-ring"></div>
+      <div class="splash-logo-inner"><img src="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg" alt=""></div>
+    </div>
+    <h2 class="splash-title">CALGAS CAPACITORS</h2>
+    <p class="splash-sub">ELE Tracker</p>
+    <div class="splash-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="splashProgress">
+      <div class="splash-progress-bar" id="splashProgressBar"></div>
+    </div>
+    <p class="splash-status" id="splashStatus">Starting up…</p>
+  </div>
+</div>
 
 <div id="loginScreen" class="center-screen hidden">
   <div class="card auth-card">
@@ -131,6 +239,10 @@
   <div class="topbar">
     <div class="brand"><img src="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg" alt=""><span class="brand-name">ELE Tracker</span></div>
     <div class="who-inline">
+      <button id="themeToggleBtn" class="btn-ghost theme-btn" title="Toggle dark mode">
+        <svg class="sun-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
       <span class="name" id="whoName">—</span>
       <span id="whoRoleDept">—</span>
       <button class="btn-ghost" id="logoutBtn">Sign out</button>
@@ -146,6 +258,8 @@
     <a href="#sec-welding">Welding</a>
     <a href="#sec-pouringcuring">Pouring &amp; Curing</a>
     <a href="#sec-elecpacking">Elec. Testing &amp; Packing</a>
+    <a href="#sec-bdv">BDV &amp; Final Testing</a>
+    <a href="#sec-finalqa">Final QA</a>
   </div>
 
   <div class="shell">
@@ -156,7 +270,7 @@
       <div class="stat-card"><div class="value" id="statInProcess">—</div><div class="label">In process</div></div>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Batches</h2><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Batches</h2><input type="search" id="batchSearchInput" class="search-input" placeholder="Search FG code, master batch no, or date…"><button class="btn-ghost" id="exportBtn">Export</button><button class="btn-text" id="exportAllBtn">Export all</button><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>FG Code</th><th>Customer</th><th>MFD</th><th>Qty</th><th>Stage</th><th>Status</th><th>Created</th></tr></thead>
         <tbody id="batchesTableBody"></tbody>
@@ -607,6 +721,111 @@
     </div>
     </div>
 
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-bdv">
+      <h2 class="stage-heading">BDV &amp; Final Testing</h2>
+    <div class="section card hidden" id="bdvCard">
+      <h2>BDV (F.C.), Final Testing, Printing/Labeling, Visual Inspection &amp; Packing</h2>
+      <form id="bdvForm">
+        <div class="field"><label for="bdMasterBatchNo">Master batch no</label><select id="bdMasterBatchNo" required></select></div>
+        <div class="field-row">
+          <div class="field"><label for="bdDate">Date</label><input type="date" id="bdDate" required></div>
+          <div class="field"><label for="bdShift">Shift</label><select id="bdShift" required></select></div>
+        </div>
+        <div class="field"><label for="bdMcNo">Machine</label><select id="bdMcNo" required></select></div>
+
+        <h3>Testing</h3>
+        <div class="field-row">
+          <div class="field"><label for="bdBDV">BDV</label><input type="text" id="bdBDV"></div>
+          <div class="field"><label for="bdCapTolerance">Cap tolerance</label><input type="text" id="bdCapTolerance"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bdMFD">MFD</label><input type="text" id="bdMFD"></div>
+          <div class="field"><label for="bdTand">Tand @ 1KHz/100Hz/50Hz</label><input type="text" id="bdTand"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bdHVAC">HVAC</label><input type="text" id="bdHVAC"></div>
+          <div class="field"><label for="bdVacForSec">Vac for Sec.</label><input type="text" id="bdVacForSec"></div>
+        </div>
+
+        <h3>Printing &amp; Packing</h3>
+        <div class="field"><label for="bdPrintingVerifiedBy">Printing verified by</label><input type="text" id="bdPrintingVerifiedBy"></div>
+        <div class="field-row">
+          <div class="field"><label for="bdInnerBoxWeightKgs">Inner box weight (Kgs)</label><input type="text" id="bdInnerBoxWeightKgs"></div>
+          <div class="field"><label for="bdMasterBoxWeightKgs">Master box weight (Kgs)</label><input type="text" id="bdMasterBoxWeightKgs"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bdCapacitorsPerBox">Capacitors per box</label><input type="number" id="bdCapacitorsPerBox" min="0"></div>
+          <div class="field"><label for="bdTotalBoxes">Total boxes</label><input type="number" id="bdTotalBoxes" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bdVisualInspectionSampleSize">Visual inspection sample size</label><input type="number" id="bdVisualInspectionSampleSize" min="0"></div>
+          <div class="field"><label for="bdElectricalInspectionSampleSize">Electrical inspection sample size</label><input type="number" id="bdElectricalInspectionSampleSize" min="0"></div>
+        </div>
+
+        <h3>Production</h3>
+        <div class="field-row">
+          <div class="field"><label for="bdTotalQty">Total qty</label><input type="number" id="bdTotalQty" min="0"></div>
+          <div class="field"><label for="bdGoodQty">Good qty</label><input type="number" id="bdGoodQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bdRejectQty">Reject qty</label><input type="number" id="bdRejectQty" min="0"></div>
+          <div class="field"><label for="bdTraysQty">Trays qty</label><input type="number" id="bdTraysQty" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bdBinsQty">Bins qty</label><input type="number" id="bdBinsQty" min="0"></div>
+          <div class="field"><label for="bdOperatorName">Operator</label><select id="bdOperatorName"></select></div>
+        </div>
+        <div class="field"><label for="bdRemarks">Remarks</label><input type="text" id="bdRemarks"></div>
+
+        <div class="form-error" id="bdvError"></div>
+        <button type="submit" class="btn-primary full" id="bdvSubmit">Log BDV &amp; Final Testing</button>
+      </form>
+    </div>
+
+      <div class="toolbar"><h2 style="margin:0">BDV &amp; Final Testing entries</h2><button class="btn-ghost" id="refreshBdBtn">Refresh</button><span class="freshness-label" id="bdFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
+        <tbody id="bdTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+    </div>
+
+    <div class="stage-section" id="sec-finalqa">
+      <h2 class="stage-heading">Final QA</h2>
+    <div class="section card hidden" id="finalQaCard">
+      <h2>Final QA Inspection</h2>
+      <p class="lede" style="margin-bottom:14px">Last stage on the card — submitting here marks the batch Complete. Name a test type per row and fill in a reading for each sample that was tested.</p>
+      <form id="finalQaForm">
+        <div class="field"><label for="fqMasterBatchNo">Master batch no</label><select id="fqMasterBatchNo" required></select></div>
+
+        <h3>Test results</h3>
+        <div style="overflow-x:auto">
+        <table class="flgrid" style="min-width:520px">
+          <thead><tr><th style="text-align:left">Test type</th><th>Sample 1</th><th>Sample 2</th><th>Sample 3</th><th>Sample 4</th></tr></thead>
+          <tbody id="fqResultsRows"></tbody>
+        </table>
+        </div>
+
+        <div class="field"><label for="fqFoaInspectorName">FOA inspector name</label><input type="text" id="fqFoaInspectorName"></div>
+        <div class="field"><label for="fqNotes">Notes</label><input type="text" id="fqNotes"></div>
+
+        <div class="form-error" id="finalQaError"></div>
+        <button type="submit" class="btn-primary full" id="finalQaSubmit">Submit Final QA</button>
+      </form>
+    </div>
+
+      <div class="toolbar"><h2 style="margin:0">Final QA results</h2><button class="btn-ghost" id="refreshFqBtn">Refresh</button><span class="freshness-label" id="fqFreshness"></span></div>
+      <table>
+        <thead><tr><th>Master Batch No</th><th>Test Type</th><th>Sample ID</th><th>Reading</th><th>FOA Inspector</th></tr></thead>
+        <tbody id="fqTableBody"></tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
@@ -615,10 +834,11 @@
 <script>
 const ELE_API_URL = 'https://script.google.com/macros/s/AKfycbwnOBDgyaLOGixNGGfq9mGjDV_DOHc4D8hVjkB83_yH1uQ5Gxd7zKGbQNggMmbtFXM3IQ/exec';
 const STOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwgMLr8mcNt402VpdDNkrrPpa0VuhwLs5xdZAtuJx9Iy_LQcKxXpxCO_mZfbCOGPn6Z/exec';
+const REDUCE_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const state = {
   session: null, who: null, dropdowns: {}, fgCatalog: [],
-  batches: [], batchesLastUpdated: null,
+  batches: [], batchesLastUpdated: null, batchSearch: '',
   windingEntries: [], windingLastUpdated: null,
   sprayEntries: [], sprayLastUpdated: null,
   heatStabEntries: [], heatStabLastUpdated: null,
@@ -626,7 +846,9 @@ const state = {
   scTestResults: [], scTestLastUpdated: null,
   wdEntries: [], wdLastUpdated: null,
   pcEntries: [], pcLastUpdated: null,
-  epEntries: [], epLastUpdated: null
+  epEntries: [], epLastUpdated: null,
+  bdEntries: [], bdLastUpdated: null,
+  finalQaResults: [], finalQaLastUpdated: null
 };
 
 async function callApi(url, action, params) {
@@ -650,7 +872,7 @@ function loadSession() {
 function clearSession() { state.session = null; localStorage.removeItem('stock_session'); }
 
 function show(id) {
-  ['initialLoader', 'loginScreen', 'appShell'].forEach(function (s) { document.getElementById(s).classList.toggle('hidden', s !== id); });
+  ['loginScreen', 'appShell'].forEach(function (s) { document.getElementById(s).classList.toggle('hidden', s !== id); });
 }
 function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function toast(msg, isError) {
@@ -675,16 +897,110 @@ function fillSelect(id, options, placeholder) {
 }
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
+// CSV export — no external library: Excel opens CSV natively, and this
+// keeps the app free of a CDN dependency that a factory-floor network
+// might not reach. UTF-8 BOM so Excel doesn't mangle the — dashes.
+function csvEscape(val) {
+  const s = String(val == null ? '' : val);
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function batchesToCsv(rows) {
+  const headers = ['Master Batch No', 'FG Code', 'Customer', 'MFD', 'Qty', 'Stage', 'Status', 'Created'];
+  const lines = [headers.map(csvEscape).join(',')];
+  rows.forEach(function (b) {
+    const created = b.CreatedDate ? new Date(b.CreatedDate).toLocaleDateString() : '';
+    lines.push([b.MasterBatchNo, b.FGCode, b.CustomerName || '', b.MFD, b.BatchQty, b.CurrentStage, b.Status, created].map(csvEscape).join(','));
+  });
+  return lines.join('\r\n');
+}
+function downloadCsv(csvContent, filename) {
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+
+// Theme — persisted in localStorage, falls back to system preference.
+function initTheme() {
+  const saved = localStorage.getItem('ele_theme');
+  const theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(theme);
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const meta = document.getElementById('metaThemeColor');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#020617' : '#f8fafc');
+  const sun = document.querySelector('#themeToggleBtn .sun-icon');
+  const moon = document.querySelector('#themeToggleBtn .moon-icon');
+  if (sun && moon) { sun.classList.toggle('hidden', theme !== 'dark'); moon.classList.toggle('hidden', theme === 'dark'); }
+}
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('ele_theme', next);
+  applyTheme(next);
+}
+
+// Splash screen — staged progress + status text while boot() loads, then a
+// smooth fade-out. #appProgressBar mirrors the same progress at the top
+// edge so a re-entry (e.g. after login) reads as "continuing", not a reset.
+function setLoaderProgress(pct, message) {
+  const bar = document.getElementById('splashProgressBar');
+  const status = document.getElementById('splashStatus');
+  const progress = document.getElementById('splashProgress');
+  const topBar = document.getElementById('appProgressBar');
+  if (bar) bar.style.width = pct + '%';
+  if (progress) progress.setAttribute('aria-valuenow', String(pct));
+  if (status && message) status.textContent = message;
+  if (topBar) { topBar.classList.add('active'); topBar.style.width = pct + '%'; }
+}
+function hideInitialLoader() {
+  return new Promise(function (resolve) {
+    const el = document.getElementById('initialLoader');
+    const topBar = document.getElementById('appProgressBar');
+    if (!el) { resolve(); return; }
+    el.classList.add('loader-exit');
+    el.setAttribute('aria-busy', 'false');
+    setTimeout(function () {
+      el.classList.add('hidden');
+      if (topBar) { topBar.classList.remove('active'); topBar.style.width = '0%'; }
+      resolve();
+    }, REDUCE_MOTION ? 0 : 560);
+  });
+}
+
+// Button-loading spinner — swaps a button's label for a spinner + message
+// and locks it, then restores the original label. Used on every form
+// submit so a slow request always reads as "working", not frozen.
+function setBtnLoading(btn, message, dark) {
+  if (!btn) return;
+  btn.dataset.originalText = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner' + (dark ? ' spinner-dark' : '') + '"></span>' + escapeHtml(message);
+}
+function clearBtnLoading(btn, finalText) {
+  if (!btn) return;
+  btn.disabled = false;
+  btn.textContent = finalText || btn.dataset.originalText || '';
+}
+
 async function boot() {
+  initTheme();
+  setLoaderProgress(15, 'Initializing…');
   const saved = loadSession();
   if (saved && saved.token) {
     state.session = saved;
+    setLoaderProgress(35, 'Restoring session…');
     try { await enterApp(); return; } catch (err) { clearSession(); }
   }
+  setLoaderProgress(100, 'Ready');
   show('loginScreen');
+  await hideInitialLoader();
 }
 
 async function enterApp() {
+  setLoaderProgress(50, 'Verifying credentials…');
   const who = await eleApi('whoami');
   state.who = who;
   document.getElementById('whoName').textContent = who.name;
@@ -699,9 +1015,12 @@ async function enterApp() {
   document.getElementById('weldingCard').classList.toggle('hidden', !who.permissions.enterWelding);
   document.getElementById('pouringCuringCard').classList.toggle('hidden', !who.permissions.enterPouringCuring);
   document.getElementById('electricalPackingCard').classList.toggle('hidden', !who.permissions.enterElectricalPacking);
+  document.getElementById('bdvCard').classList.toggle('hidden', !who.permissions.enterBDV);
+  document.getElementById('finalQaCard').classList.toggle('hidden', !who.permissions.enterFinalQA);
 
   show('appShell');
 
+  setLoaderProgress(65, 'Loading workspace…');
   state.dropdowns = await eleApi('getDropdowns');
   fillSelect('cbTypeOfFilm', state.dropdowns.FilmType || [], 'Select…');
   fillSelect('cbFreeMargin', state.dropdowns.FreeMargin || [], 'Select…');
@@ -735,6 +1054,9 @@ async function enterApp() {
   fillSelect('epShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('epMcNo', state.dropdowns.Machines_ElectricalPacking || [], 'Select…');
   fillSelect('epOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('bdShift', state.dropdowns.Shifts || [], 'Select…');
+  fillSelect('bdMcNo', state.dropdowns.Machines_BDV || [], 'Select…');
+  fillSelect('bdOperatorName', state.dropdowns.Staff || [], 'Select…');
   document.getElementById('customerOptions').innerHTML = (state.dropdowns.CustomerNames || []).map(function (c) { return '<option value="' + escapeHtml(c) + '">'; }).join('');
   document.getElementById('cbDate').value = todayStr();
   document.getElementById('lsDate').value = todayStr();
@@ -744,16 +1066,21 @@ async function enterApp() {
   document.getElementById('wdDate').value = todayStr();
   document.getElementById('pcDate').value = todayStr();
   document.getElementById('epDate').value = todayStr();
+  document.getElementById('bdDate').value = todayStr();
   buildFilmLoadGrid();
   buildSprayReadingsGrid();
   buildScTestingGrid();
+  buildFinalQaGrid();
 
   if (canWind) {
     state.fgCatalog = await eleApi('getFGCatalog');
     document.getElementById('fgOptions').innerHTML = state.fgCatalog.map(function (f) { return '<option value="' + escapeHtml(f.code + ' — ' + f.name) + '">'; }).join('');
   }
 
-  await Promise.all([loadBatches(), loadWindingEntries(), loadSprayEntries(), loadHeatStabEntries(), loadScEntries(), loadScTestResults(), loadWdEntries(), loadPcEntries(), loadEpEntries()]);
+  setLoaderProgress(85, 'Fetching batch data…');
+  await Promise.all([loadBatches(), loadWindingEntries(), loadSprayEntries(), loadHeatStabEntries(), loadScEntries(), loadScTestResults(), loadWdEntries(), loadPcEntries(), loadEpEntries(), loadBdEntries(), loadFinalQaResults()]);
+  setLoaderProgress(100, 'Ready');
+  await hideInitialLoader();
   setInterval(function () {
     if (document.visibilityState !== 'visible') return;
     loadBatches().catch(function (err) { console.error(err); });
@@ -765,6 +1092,8 @@ async function enterApp() {
     loadWdEntries().catch(function (err) { console.error(err); });
     loadPcEntries().catch(function (err) { console.error(err); });
     loadEpEntries().catch(function (err) { console.error(err); });
+    loadBdEntries().catch(function (err) { console.error(err); });
+    loadFinalQaResults().catch(function (err) { console.error(err); });
   }, 45000);
   setInterval(updateFreshnessLabels, 20000);
 }
@@ -862,11 +1191,40 @@ function collectScTestingRounds() {
   return rounds;
 }
 
+// Final QA's test x sample grid — up to 4 test types (typed in per row) x
+// up to 4 samples per test. Only rows with a test type filled in, and only
+// samples with a reading filled in within those rows, get submitted.
+const FQ_SAMPLE_IDS = [1, 2, 3, 4];
+function buildFinalQaGrid() {
+  const body = document.getElementById('fqResultsRows');
+  let html = '';
+  for (let row = 1; row <= 4; row++) {
+    html += '<tr><td><input type="text" data-fqtesttype="' + row + '" placeholder="Test ' + row + '"></td>' +
+      FQ_SAMPLE_IDS.map(function (s) { return '<td><input type="text" data-fqrow="' + row + '" data-fqsample="' + s + '"></td>'; }).join('') +
+      '</tr>';
+  }
+  body.innerHTML = html;
+}
+function collectFinalQaResults() {
+  const results = [];
+  for (let row = 1; row <= 4; row++) {
+    const testType = document.querySelector('[data-fqtesttype="' + row + '"]').value.trim();
+    if (!testType) continue;
+    FQ_SAMPLE_IDS.forEach(function (s) {
+      const el = document.querySelector('[data-fqrow="' + row + '"][data-fqsample="' + s + '"]');
+      const reading = el ? el.value.trim() : '';
+      if (reading) results.push({ testType: testType, sampleId: String(s), reading: reading });
+    });
+  }
+  return results;
+}
+
 function updateFreshnessLabels() {
   [['batchesFreshness', 'batchesLastUpdated'], ['windingFreshness', 'windingLastUpdated'],
    ['sprayFreshness', 'sprayLastUpdated'], ['heatStabFreshness', 'heatStabLastUpdated'],
    ['scFreshness', 'scLastUpdated'], ['scTestFreshness', 'scTestLastUpdated'],
-   ['wdFreshness', 'wdLastUpdated'], ['pcFreshness', 'pcLastUpdated'], ['epFreshness', 'epLastUpdated']].forEach(function (pair) {
+   ['wdFreshness', 'wdLastUpdated'], ['pcFreshness', 'pcLastUpdated'], ['epFreshness', 'epLastUpdated'],
+   ['bdFreshness', 'bdLastUpdated'], ['fqFreshness', 'finalQaLastUpdated']].forEach(function (pair) {
     const el = document.getElementById(pair[0]);
     if (el) el.textContent = 'Updated ' + timeAgo(state[pair[1]]);
   });
@@ -879,13 +1237,28 @@ async function loadBatches() {
   populateBatchDropdown();
   updateFreshnessLabels();
 }
+// Shared by renderBatches() and the export buttons, so "what's on screen"
+// and "what Export downloads" can never drift apart.
+function getFilteredBatches() {
+  const q = state.batchSearch;
+  if (!q) return state.batches;
+  return state.batches.filter(function (b) {
+    const created = b.CreatedDate ? new Date(b.CreatedDate).toLocaleDateString() : '';
+    return (b.MasterBatchNo || '').toLowerCase().indexOf(q) > -1 ||
+      (b.FGCode || '').toLowerCase().indexOf(q) > -1 ||
+      created.toLowerCase().indexOf(q) > -1;
+  });
+}
+
 function renderBatches() {
   document.getElementById('statTotalBatches').textContent = state.batches.length;
   document.getElementById('statInProcess').textContent = state.batches.filter(function (b) { return b.Status === 'In Process'; }).length;
+  document.getElementById('exportAllBtn').classList.toggle('hidden', !state.batchSearch);
 
+  const rows = getFilteredBatches();
   const body = document.getElementById('batchesTableBody');
-  if (state.batches.length === 0) { body.innerHTML = '<tr><td colspan="8" class="empty">No batches yet.</td></tr>'; return; }
-  body.innerHTML = state.batches.map(function (b) {
+  if (rows.length === 0) { body.innerHTML = '<tr><td colspan="8" class="empty">' + (state.batchSearch ? 'No batches match your search.' : 'No batches yet.') + '</td></tr>'; return; }
+  body.innerHTML = rows.map(function (b) {
     const created = b.CreatedDate ? new Date(b.CreatedDate).toLocaleDateString() : '—';
     return '<tr>' +
       '<td class="mono" data-label="Master Batch No">' + escapeHtml(b.MasterBatchNo) + '</td>' +
@@ -894,7 +1267,7 @@ function renderBatches() {
       '<td data-label="MFD">' + escapeHtml(b.MFD) + '</td>' +
       '<td class="mono" data-label="Qty">' + escapeHtml(b.BatchQty || '—') + '</td>' +
       '<td data-label="Stage"><span class="status-pill">' + escapeHtml(b.CurrentStage) + '</span></td>' +
-      '<td data-label="Status">' + escapeHtml(b.Status) + '</td>' +
+      '<td data-label="Status"><span class="status-pill' + (b.Status === 'Complete' ? ' ok' : '') + '">' + escapeHtml(b.Status) + '</span></td>' +
       '<td data-label="Created">' + created + '</td>' +
       '</tr>';
   }).join('');
@@ -941,6 +1314,18 @@ function populateBatchDropdown() {
   epSel.innerHTML = epReady.length
     ? epReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
     : '<option value="">No batches ready for Electrical Testing &amp; Packing</option>';
+
+  const bdReady = state.batches.filter(function (b) { return b.CurrentStage === 'Electrical Testing & Packing' && b.Status === 'In Process'; });
+  const bdSel = document.getElementById('bdMasterBatchNo');
+  bdSel.innerHTML = bdReady.length
+    ? bdReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for BDV &amp; Final Testing</option>';
+
+  const fqReady = state.batches.filter(function (b) { return b.CurrentStage === 'BDV & Final Testing' && b.Status === 'In Process'; });
+  const fqSel = document.getElementById('fqMasterBatchNo');
+  fqSel.innerHTML = fqReady.length
+    ? fqReady.map(function (b) { return '<option value="' + escapeHtml(b.MasterBatchNo) + '">' + escapeHtml(b.MasterBatchNo) + ' — ' + escapeHtml(b.FGCode) + '</option>'; }).join('')
+    : '<option value="">No batches ready for Final QA</option>';
 }
 
 async function loadWindingEntries() {
@@ -1057,9 +1442,9 @@ function renderScTestResults() {
   }).join('');
 }
 
-// Welding, Pouring & Curing, and Electrical Testing & Packing all share the
-// same entry-table shape, so one renderer covers all three instead of
-// tripling near-identical code.
+// Welding, Pouring & Curing, Electrical Testing & Packing, and BDV & Final
+// Testing all share the same entry-table shape, so one renderer covers all
+// four instead of quadrupling near-identical code.
 function renderSimpleEntries(tbodyId, entries) {
   const body = document.getElementById(tbodyId);
   if (entries.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No entries yet.</td></tr>'; return; }
@@ -1094,21 +1479,58 @@ async function loadEpEntries() {
   renderSimpleEntries('epTableBody', state.epEntries);
   updateFreshnessLabels();
 }
+async function loadBdEntries() {
+  state.bdEntries = await eleApi('getBDVEntries');
+  state.bdLastUpdated = new Date();
+  renderSimpleEntries('bdTableBody', state.bdEntries);
+  updateFreshnessLabels();
+}
+
+// Final QA's own shape — one row per test-type/sample-id result, not a
+// settings+shift row, so it gets its own renderer instead of reusing
+// renderSimpleEntries.
+async function loadFinalQaResults() {
+  state.finalQaResults = await eleApi('getFinalQAResults');
+  state.finalQaLastUpdated = new Date();
+  renderFinalQaResults();
+  updateFreshnessLabels();
+}
+function renderFinalQaResults() {
+  const body = document.getElementById('fqTableBody');
+  if (state.finalQaResults.length === 0) { body.innerHTML = '<tr><td colspan="5" class="empty">No results yet.</td></tr>'; return; }
+  body.innerHTML = state.finalQaResults.map(function (r) {
+    return '<tr>' +
+      '<td class="mono" data-label="Master Batch No">' + escapeHtml(r.MasterBatchNo) + '</td>' +
+      '<td data-label="Test Type">' + escapeHtml(r.TestType) + '</td>' +
+      '<td data-label="Sample ID">' + escapeHtml(r.SampleID) + '</td>' +
+      '<td class="mono" data-label="Reading">' + escapeHtml(r.Reading || '—') + '</td>' +
+      '<td data-label="FOA Inspector">' + escapeHtml(r.FOAInspectorName || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
 
 document.getElementById('loginForm').addEventListener('submit', async function (e) {
   e.preventDefault();
   const btn = document.getElementById('loginSubmit');
   const errEl = document.getElementById('loginError');
   errEl.textContent = '';
-  btn.disabled = true; btn.textContent = 'Signing in…';
+  setBtnLoading(btn, 'Signing in…');
   try {
     const session = await stockApi('login', { username: document.getElementById('loginUsername').value.trim(), password: document.getElementById('loginPassword').value });
     saveSession(session);
+    const loader = document.getElementById('initialLoader');
+    if (loader) { loader.classList.remove('hidden', 'loader-exit'); loader.setAttribute('aria-busy', 'true'); }
+    setLoaderProgress(55, 'Signing you in…');
     await enterApp();
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Sign in'; }
+  finally { clearBtnLoading(btn, 'Sign in'); }
 });
 document.getElementById('logoutBtn').addEventListener('click', function () { clearSession(); location.reload(); });
+document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+document.getElementById('batchSearchInput').addEventListener('input', function () {
+  state.batchSearch = this.value.trim().toLowerCase();
+  renderBatches();
+});
 
 document.getElementById('createBatchForm').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -1117,7 +1539,7 @@ document.getElementById('createBatchForm').addEventListener('submit', async func
   errEl.textContent = '';
   const fgCode = resolveFgCode(document.getElementById('cbFgCode').value.trim());
   if (!fgCode) { errEl.textContent = 'Pick an FG code from the list.'; return; }
-  btn.disabled = true; btn.textContent = 'Creating…';
+  setBtnLoading(btn, 'Creating…');
   try {
     const result = await eleApi('createWindingBatch', {
       fgCode: fgCode,
@@ -1158,7 +1580,7 @@ document.getElementById('createBatchForm').addEventListener('submit', async func
     toast('Created ' + result.masterBatchNo);
     await loadBatches();
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Create batch'; }
+  finally { clearBtnLoading(btn, 'Create batch'); }
 });
 
 document.getElementById('logShiftForm').addEventListener('submit', async function (e) {
@@ -1168,7 +1590,7 @@ document.getElementById('logShiftForm').addEventListener('submit', async functio
   errEl.textContent = '';
   const masterBatchNo = document.getElementById('lsMasterBatchNo').value;
   if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
-  btn.disabled = true; btn.textContent = 'Logging…';
+  setBtnLoading(btn, 'Logging…');
   try {
     await eleApi('addWindingShift', {
       masterBatchNo: masterBatchNo,
@@ -1187,16 +1609,27 @@ document.getElementById('logShiftForm').addEventListener('submit', async functio
     toast('Shift logged — ' + masterBatchNo);
     await loadWindingEntries();
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Log shift'; }
+  finally { clearBtnLoading(btn, 'Log shift'); }
 });
 
 document.getElementById('refreshBatchesBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadBatches(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadBatches(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
+});
+document.getElementById('exportBtn').addEventListener('click', function () {
+  const rows = getFilteredBatches();
+  if (rows.length === 0) { toast('Nothing to export.', true); return; }
+  downloadCsv(batchesToCsv(rows), 'ele-tracker-batches' + (state.batchSearch ? '-filtered' : '') + '-' + todayStr() + '.csv');
+  toast('Exported ' + rows.length + ' batch' + (rows.length === 1 ? '' : 'es') + '.');
+});
+document.getElementById('exportAllBtn').addEventListener('click', function () {
+  if (state.batches.length === 0) { toast('Nothing to export.', true); return; }
+  downloadCsv(batchesToCsv(state.batches), 'ele-tracker-batches-all-' + todayStr() + '.csv');
+  toast('Exported ' + state.batches.length + ' batches.');
 });
 document.getElementById('refreshWindingBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadWindingEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadWindingEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 
 document.getElementById('sprayForm').addEventListener('submit', async function (e) {
@@ -1206,7 +1639,7 @@ document.getElementById('sprayForm').addEventListener('submit', async function (
   errEl.textContent = '';
   const masterBatchNo = document.getElementById('spMasterBatchNo').value;
   if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
-  btn.disabled = true; btn.textContent = 'Logging…';
+  setBtnLoading(btn, 'Logging…');
   try {
     const readings = collectSprayReadings();
     await eleApi('enterSpray', Object.assign({
@@ -1232,11 +1665,11 @@ document.getElementById('sprayForm').addEventListener('submit', async function (
     toast('Spray logged — ' + masterBatchNo);
     await Promise.all([loadBatches(), loadSprayEntries()]);
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Log Spray'; }
+  finally { clearBtnLoading(btn, 'Log Spray'); }
 });
 document.getElementById('refreshSprayBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadSprayEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadSprayEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 
 document.getElementById('heatStabForm').addEventListener('submit', async function (e) {
@@ -1246,7 +1679,7 @@ document.getElementById('heatStabForm').addEventListener('submit', async functio
   errEl.textContent = '';
   const masterBatchNo = document.getElementById('hsMasterBatchNo').value;
   if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
-  btn.disabled = true; btn.textContent = 'Logging…';
+  setBtnLoading(btn, 'Logging…');
   try {
     await eleApi('enterHeatStab', {
       masterBatchNo: masterBatchNo,
@@ -1268,11 +1701,11 @@ document.getElementById('heatStabForm').addEventListener('submit', async functio
     toast('Heat Stabilization logged — ' + masterBatchNo);
     await Promise.all([loadBatches(), loadHeatStabEntries()]);
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Log Heat Stabilization'; }
+  finally { clearBtnLoading(btn, 'Log Heat Stabilization'); }
 });
 document.getElementById('refreshHeatStabBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadHeatStabEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadHeatStabEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 
 document.getElementById('shortClearingForm').addEventListener('submit', async function (e) {
@@ -1282,7 +1715,7 @@ document.getElementById('shortClearingForm').addEventListener('submit', async fu
   errEl.textContent = '';
   const masterBatchNo = document.getElementById('scMasterBatchNo').value;
   if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
-  btn.disabled = true; btn.textContent = 'Logging…';
+  setBtnLoading(btn, 'Logging…');
   try {
     await eleApi('enterShortClearing', {
       masterBatchNo: masterBatchNo,
@@ -1313,15 +1746,15 @@ document.getElementById('shortClearingForm').addEventListener('submit', async fu
     toast('Short Clearing logged — ' + masterBatchNo);
     await Promise.all([loadBatches(), loadScEntries(), loadScTestResults()]);
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Log Short Clearing'; }
+  finally { clearBtnLoading(btn, 'Log Short Clearing'); }
 });
 document.getElementById('refreshScBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadScEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadScEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('refreshScTestBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadScTestResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadScTestResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 
 document.getElementById('weldingForm').addEventListener('submit', async function (e) {
@@ -1331,7 +1764,7 @@ document.getElementById('weldingForm').addEventListener('submit', async function
   errEl.textContent = '';
   const masterBatchNo = document.getElementById('wdMasterBatchNo').value;
   if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
-  btn.disabled = true; btn.textContent = 'Logging…';
+  setBtnLoading(btn, 'Logging…');
   try {
     await eleApi('enterWelding', {
       masterBatchNo: masterBatchNo,
@@ -1358,11 +1791,11 @@ document.getElementById('weldingForm').addEventListener('submit', async function
     toast('Welding logged — ' + masterBatchNo);
     await Promise.all([loadBatches(), loadWdEntries()]);
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Log Welding'; }
+  finally { clearBtnLoading(btn, 'Log Welding'); }
 });
 document.getElementById('refreshWdBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadWdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadWdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 
 document.getElementById('pouringCuringForm').addEventListener('submit', async function (e) {
@@ -1372,7 +1805,7 @@ document.getElementById('pouringCuringForm').addEventListener('submit', async fu
   errEl.textContent = '';
   const masterBatchNo = document.getElementById('pcMasterBatchNo').value;
   if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
-  btn.disabled = true; btn.textContent = 'Logging…';
+  setBtnLoading(btn, 'Logging…');
   try {
     await eleApi('enterPouringCuring', {
       masterBatchNo: masterBatchNo,
@@ -1394,11 +1827,11 @@ document.getElementById('pouringCuringForm').addEventListener('submit', async fu
     toast('Pouring & Curing logged — ' + masterBatchNo);
     await Promise.all([loadBatches(), loadPcEntries()]);
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Log Pouring & Curing'; }
+  finally { clearBtnLoading(btn, 'Log Pouring & Curing'); }
 });
 document.getElementById('refreshPcBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadPcEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadPcEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 
 document.getElementById('electricalPackingForm').addEventListener('submit', async function (e) {
@@ -1408,7 +1841,7 @@ document.getElementById('electricalPackingForm').addEventListener('submit', asyn
   errEl.textContent = '';
   const masterBatchNo = document.getElementById('epMasterBatchNo').value;
   if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
-  btn.disabled = true; btn.textContent = 'Logging…';
+  setBtnLoading(btn, 'Logging…');
   try {
     await eleApi('enterElectricalPacking', {
       masterBatchNo: masterBatchNo,
@@ -1435,11 +1868,87 @@ document.getElementById('electricalPackingForm').addEventListener('submit', asyn
     toast('Electrical Testing & Packing logged — ' + masterBatchNo);
     await Promise.all([loadBatches(), loadEpEntries()]);
   } catch (err) { errEl.textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Log Electrical Testing & Packing'; }
+  finally { clearBtnLoading(btn, 'Log Electrical Testing & Packing'); }
 });
 document.getElementById('refreshEpBtn').addEventListener('click', async function () {
-  const btn = this; btn.disabled = true; btn.textContent = 'Refreshing…';
-  try { await loadEpEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadEpEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
+});
+
+document.getElementById('bdvForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('bdvSubmit');
+  const errEl = document.getElementById('bdvError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('bdMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  setBtnLoading(btn, 'Logging…');
+  try {
+    await eleApi('enterBDV', {
+      masterBatchNo: masterBatchNo,
+      date: document.getElementById('bdDate').value,
+      shift: document.getElementById('bdShift').value,
+      mcNo: document.getElementById('bdMcNo').value,
+      bdv: document.getElementById('bdBDV').value.trim(),
+      capTolerance: document.getElementById('bdCapTolerance').value.trim(),
+      mfd: document.getElementById('bdMFD').value.trim(),
+      tand: document.getElementById('bdTand').value.trim(),
+      hvac: document.getElementById('bdHVAC').value.trim(),
+      vacForSec: document.getElementById('bdVacForSec').value.trim(),
+      printingVerifiedBy: document.getElementById('bdPrintingVerifiedBy').value.trim(),
+      innerBoxWeightKgs: document.getElementById('bdInnerBoxWeightKgs').value.trim(),
+      masterBoxWeightKgs: document.getElementById('bdMasterBoxWeightKgs').value.trim(),
+      capacitorsPerBox: document.getElementById('bdCapacitorsPerBox').value || undefined,
+      totalBoxes: document.getElementById('bdTotalBoxes').value || undefined,
+      visualInspectionSampleSize: document.getElementById('bdVisualInspectionSampleSize').value || undefined,
+      electricalInspectionSampleSize: document.getElementById('bdElectricalInspectionSampleSize').value || undefined,
+      totalQty: document.getElementById('bdTotalQty').value || undefined,
+      goodQty: document.getElementById('bdGoodQty').value || undefined,
+      rejectQty: document.getElementById('bdRejectQty').value || undefined,
+      traysQty: document.getElementById('bdTraysQty').value || undefined,
+      binsQty: document.getElementById('bdBinsQty').value || undefined,
+      operatorName: document.getElementById('bdOperatorName').value,
+      remarks: document.getElementById('bdRemarks').value.trim()
+    });
+    document.getElementById('bdvForm').reset();
+    document.getElementById('bdDate').value = todayStr();
+    toast('BDV & Final Testing logged — ' + masterBatchNo);
+    await Promise.all([loadBatches(), loadBdEntries()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { clearBtnLoading(btn, 'Log BDV & Final Testing'); }
+});
+document.getElementById('refreshBdBtn').addEventListener('click', async function () {
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadBdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
+});
+
+document.getElementById('finalQaForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = document.getElementById('finalQaSubmit');
+  const errEl = document.getElementById('finalQaError');
+  errEl.textContent = '';
+  const masterBatchNo = document.getElementById('fqMasterBatchNo').value;
+  if (!masterBatchNo) { errEl.textContent = 'No batch selected.'; return; }
+  const results = collectFinalQaResults();
+  if (results.length === 0) { errEl.textContent = 'Enter at least one test type and reading.'; return; }
+  setBtnLoading(btn, 'Submitting…');
+  try {
+    await eleApi('submitFinalQA', {
+      masterBatchNo: masterBatchNo,
+      results: results,
+      foaInspectorName: document.getElementById('fqFoaInspectorName').value.trim(),
+      notes: document.getElementById('fqNotes').value.trim()
+    });
+    document.getElementById('finalQaForm').reset();
+    buildFinalQaGrid();
+    toast('Final QA submitted — ' + masterBatchNo + ' marked Complete');
+    await Promise.all([loadBatches(), loadFinalQaResults()]);
+  } catch (err) { errEl.textContent = err.message; }
+  finally { clearBtnLoading(btn, 'Submit Final QA'); }
+});
+document.getElementById('refreshFqBtn').addEventListener('click', async function () {
+  const btn = this; setBtnLoading(btn, 'Refreshing…', true);
+  try { await loadFinalQaResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 
 if ('serviceWorker' in navigator) {
