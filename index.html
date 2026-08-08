@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.6.3">
+<meta name="app-version" content="0.6.4">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -192,6 +192,14 @@
   .report-line { font-size: 12.5px; color: var(--ink-soft); padding: 4px 0; }
   .report-empty { font-size: 12px; color: var(--ink-faint); font-style: italic; }
 
+  .ep-selectall { display: flex; align-items: center; gap: 8px; padding: 8px 4px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .ep-count { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--ink-faint); }
+  .ep-list { max-height: 260px; overflow-y: auto; padding: 4px 0; }
+  .ep-item { display: flex; align-items: center; gap: 8px; padding: 7px 4px; font-size: 13px; cursor: pointer; border-radius: 6px; }
+  .ep-item:hover { background: var(--line-soft); }
+  .ep-item input, .ep-selectall input { flex-shrink: 0; width: 15px; height: 15px; accent-color: var(--blue); cursor: pointer; }
+  .ep-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--line); }
+
   @media (max-width: 600px) {
     .field-row { grid-template-columns: 1fr; }
     .stat-row { grid-template-columns: 1fr; }
@@ -213,6 +221,11 @@
   .stage-section:not(:first-child) { border-top: 1px solid var(--line); padding-top: 28px; margin-top: 28px; }
   .stage-heading { font-size: 19px; font-weight: 700; margin: 0 0 16px; letter-spacing: -0.01em; }
 </style>
+<!-- xlsx-js-style: SheetJS Community Edition + cell styling (colors, fonts,
+     borders) that the free SheetJS build doesn't include. Used only by the
+     Export buttons; if this fails to load (e.g. no route out to jsDelivr
+     from this network), exports fall back to plain CSV — see xlsxReady(). -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js" defer></script>
 </head>
 <body>
 
@@ -287,7 +300,7 @@
       <div class="stat-card"><div class="value" id="statInProcess">—</div><div class="label">In process</div></div>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Batches</h2><input type="search" id="batchSearchInput" class="search-input" placeholder="Search FG code, master batch no, or date…"><button class="btn-ghost" id="exportBtn">Export</button><button class="btn-text" id="exportAllBtn">Export all</button><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Batches</h2><input type="search" id="batchSearchInput" class="search-input" placeholder="Search FG code, master batch no, or date…"><button class="btn-ghost" id="exportBtn">Export</button><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>FG Code</th><th>Customer</th><th>MFD</th><th>Qty</th><th>Stage</th><th>Status</th><th>Created</th></tr></thead>
         <tbody id="batchesTableBody"></tbody>
@@ -876,6 +889,29 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="exportPickerOverlay">
+  <div class="modal-panel" style="max-width:480px">
+    <div class="modal-header">
+      <div>
+        <h2 id="epTitle" style="margin:0 0 4px">Export</h2>
+        <div class="lede" style="margin:0">Pick which batches to include — all selected by default.</div>
+      </div>
+      <button class="btn-ghost theme-btn" id="epCloseBtn" title="Close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding-bottom:0">
+      <input type="search" id="epSearchInput" class="search-input" style="width:100%; max-width:none; margin-bottom:10px" placeholder="Search batches…">
+      <label class="ep-selectall"><input type="checkbox" id="epSelectAll"><span>Select all</span><span class="ep-count" id="epCount"></span></label>
+      <div class="ep-list" id="epList"></div>
+    </div>
+    <div class="ep-footer">
+      <button class="btn-ghost" id="epCancelBtn">Cancel</button>
+      <button class="btn-primary" id="epExportBtn">Export selected</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const ELE_API_URL = 'https://script.google.com/macros/s/AKfycbwnOBDgyaLOGixNGGfq9mGjDV_DOHc4D8hVjkB83_yH1uQ5Gxd7zKGbQNggMmbtFXM3IQ/exec';
 const STOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwgMLr8mcNt402VpdDNkrrPpa0VuhwLs5xdZAtuJx9Iy_LQcKxXpxCO_mZfbCOGPn6Z/exec';
@@ -883,7 +919,7 @@ const REDUCE_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-m
 
 const state = {
   session: null, who: null, dropdowns: {}, fgCatalog: [],
-  batches: [], batchesLastUpdated: null, batchSearch: '', openBatchNo: null,
+  batches: [], batchesLastUpdated: null, batchSearch: '', openBatchNo: null, exportPicker: null,
   windingEntries: [], windingLastUpdated: null,
   sprayEntries: [], sprayLastUpdated: null,
   heatStabEntries: [], heatStabLastUpdated: null,
@@ -949,15 +985,6 @@ function csvEscape(val) {
   const s = String(val == null ? '' : val);
   return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
-function batchesToCsv(rows) {
-  const headers = ['Master Batch No', 'FG Code', 'Customer', 'MFD', 'Qty', 'Stage', 'Status', 'Created'];
-  const lines = [headers.map(csvEscape).join(',')];
-  rows.forEach(function (b) {
-    const created = b.CreatedDate ? new Date(b.CreatedDate).toLocaleDateString() : '';
-    lines.push([b.MasterBatchNo, b.FGCode, b.CustomerName || '', b.MFD, b.BatchQty, b.CurrentStage, b.Status, created].map(csvEscape).join(','));
-  });
-  return lines.join('\r\n');
-}
 function downloadCsv(csvContent, filename) {
   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -967,13 +994,23 @@ function downloadCsv(csvContent, filename) {
   setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
 }
 
-// Generic row-set -> CSV, driven by a {key, label} column list so each
-// stage only has to declare its columns once and gets both a standalone
-// "Export" button and a slot in the full batch-report export for free.
+function fmtDateCol(v) { return v ? new Date(v).toLocaleDateString() : ''; }
+function fmtBoolCol(v) { return (v === true || v === 'TRUE') ? 'Yes' : 'No'; }
+// Shared by the CSV and XLSX writers so a column's fmt only has to be
+// applied in one place.
+function colValue(r, c) {
+  const raw = r[c.key];
+  return c.fmt ? c.fmt(raw, r) : (raw == null ? '' : raw);
+}
+
+// Generic row-set -> CSV, driven by a {key, label, fmt?} column list so
+// each stage only has to declare its columns once and gets both a
+// standalone "Export" button and a slot in the full batch-report export
+// for free.
 function rowsToCsvLines(rows, columns) {
   const lines = [columns.map(function (c) { return c.label; }).map(csvEscape).join(',')];
   rows.forEach(function (r) {
-    lines.push(columns.map(function (c) { return csvEscape(r[c.key]); }).join(','));
+    lines.push(columns.map(function (c) { return csvEscape(colValue(r, c)); }).join(','));
   });
   return lines;
 }
@@ -992,6 +1029,86 @@ function sectionsToCsv(sections) {
 }
 function columnHeaderLine(columns) { return columns.map(function (c) { return c.label; }).map(csvEscape).join(','); }
 
+// ============================================================
+// STYLED EXCEL EXPORT (xlsx-js-style) — with a CSV fallback
+//
+// The free/community SheetJS build can read styles but not write them;
+// coloring cells needs the Pro edition or a fork like xlsx-js-style
+// (loaded in <head>). xlsxReady() is checked at the point of export, not
+// at page load, so a slow or blocked CDN never breaks the app — it just
+// quietly downgrades that one export to plain CSV.
+// ============================================================
+
+function xlsxReady() { return typeof XLSX !== 'undefined'; }
+
+// Excel forbids \ / ? * [ ] in sheet names and caps them at 31 chars.
+function safeSheetName(name) { return String(name).replace(/[\\/?*[\]]/g, '-').slice(0, 31); }
+
+function xlsxBorder(rgb) {
+  const side = { style: 'thin', color: { rgb: rgb } };
+  return { top: side, bottom: side, left: side, right: side };
+}
+const XLSX_TITLE_STYLE = { font: { bold: true, sz: 14, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '0F172A' } }, alignment: { vertical: 'center', horizontal: 'left', indent: 1 } };
+const XLSX_HEADER_STYLE = { font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1D4ED8' } }, alignment: { vertical: 'center', horizontal: 'center', wrapText: true }, border: xlsxBorder('1D4ED8') };
+const XLSX_EMPTY_STYLE = { font: { italic: true, sz: 10.5, color: { rgb: '94A3B8' } } };
+function xlsxDataStyle(alt) {
+  return { font: { sz: 10.5, color: { rgb: '0F172A' } }, fill: { fgColor: { rgb: alt ? 'EFF6FF' : 'FFFFFF' } }, border: xlsxBorder('E2E8F0'), alignment: { vertical: 'center' } };
+}
+const XLSX_STATUS_OK_STYLE = { font: { sz: 10.5, bold: true, color: { rgb: '065F46' } }, fill: { fgColor: { rgb: 'D1FAE5' } }, border: xlsxBorder('E2E8F0'), alignment: { vertical: 'center' } };
+
+// One worksheet: a dark title band (merged across all columns), a bold
+// blue header row, then zebra-striped data rows. Mirrors the app's own
+// blue/navy palette so exports look like they came from the same product.
+function buildXlsxSheet(title, columns, rows) {
+  const aoa = [[title], columns.map(function (c) { return c.label; })];
+  rows.forEach(function (r) { aoa.push(columns.map(function (c) { return colValue(r, c); })); });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const lastCol = Math.max(columns.length - 1, 0);
+
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } }];
+  for (let c = 0; c <= lastCol; c++) {
+    const addr = XLSX.utils.encode_cell({ r: 0, c: c });
+    ws[addr] = ws[addr] || { t: 's', v: '' };
+    ws[addr].s = XLSX_TITLE_STYLE;
+  }
+  columns.forEach(function (c, i) {
+    const addr = XLSX.utils.encode_cell({ r: 1, c: i });
+    if (ws[addr]) ws[addr].s = XLSX_HEADER_STYLE;
+  });
+  rows.forEach(function (r, ri) {
+    const alt = ri % 2 === 1;
+    columns.forEach(function (c, ci) {
+      const addr = XLSX.utils.encode_cell({ r: ri + 2, c: ci });
+      if (!ws[addr]) return;
+      ws[addr].s = (c.key === 'Status' && r.Status === 'Complete') ? XLSX_STATUS_OK_STYLE : xlsxDataStyle(alt);
+    });
+  });
+  if (rows.length === 0) {
+    const addr = XLSX.utils.encode_cell({ r: 2, c: 0 });
+    ws[addr] = { t: 's', v: 'Not logged yet.', s: XLSX_EMPTY_STYLE };
+  }
+
+  ws['!cols'] = columns.map(function (c) { return { wch: Math.max(String(c.label).length + 2, 12) }; });
+  ws['!rows'] = [{ hpt: 26 }, { hpt: 20 }];
+  return ws;
+}
+
+// Single entry point every Export button calls. Tries a styled .xlsx
+// first; if the styling library never loaded, falls back to the plain
+// CSV path above so the button still works either way.
+function exportTable(rows, columns, filenamePrefix, sheetTitle) {
+  if (rows.length === 0) { toast('Nothing to export.', true); return; }
+  if (!xlsxReady()) {
+    exportTableCsv(rows, columns, filenamePrefix);
+    toast('Excel styling unavailable — exported CSV instead.', true);
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildXlsxSheet(sheetTitle, columns, rows), safeSheetName(sheetTitle));
+  XLSX.writeFile(wb, filenamePrefix + '-' + todayStr() + '.xlsx');
+  toast('Exported ' + rows.length + ' row' + (rows.length === 1 ? '' : 's') + '.');
+}
+
 // One column list per sheet — key must match the field name the backend
 // returns; label is what shows up in Excel. Field names taken straight
 // from each stage's schema in Setup.gs.
@@ -999,26 +1116,26 @@ const BATCH_COLUMNS = [
   { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'FGCode', label: 'FG Code' },
   { key: 'CustomerName', label: 'Customer' }, { key: 'WindingProgramNo', label: 'Winding Program No' },
   { key: 'CycleTime', label: 'Cycle Time' }, { key: 'DrawingNo', label: 'Drawing No' },
-  { key: 'ElementBatchNo', label: 'Element Batch No' }, { key: 'DatePlanning', label: 'Date Planning' },
+  { key: 'ElementBatchNo', label: 'Element Batch No' }, { key: 'DatePlanning', label: 'Date Planning', fmt: fmtDateCol },
   { key: 'MFD', label: 'MFD' }, { key: 'Voltage', label: 'Voltage' }, { key: 'BatchQty', label: 'Batch Qty' },
   { key: 'FilmBatchNo', label: 'Film Batch No' }, { key: 'InputMaterialThicknessMicron', label: 'Input Thickness (Micron)' },
   { key: 'InputMaterialWidth', label: 'Input Width' }, { key: 'TypeOfFilm', label: 'Type Of Film' },
-  { key: 'WaveCut', label: 'Wave Cut' }, { key: 'FreeMargin', label: 'Free Margin' },
+  { key: 'WaveCut', label: 'Wave Cut', fmt: fmtBoolCol }, { key: 'FreeMargin', label: 'Free Margin' },
   { key: 'MPPFilmTurns', label: 'MPP Film Turns' }, { key: 'Resistivity', label: 'Resistivity' },
   { key: 'WrappingTurns', label: 'Wrapping Turns' }, { key: 'ReDie', label: 'Re-Die' },
   { key: 'CanSize', label: 'Can Size' }, { key: 'BarrierHeightTurns', label: 'Barrier Height & Turns' },
   { key: 'CoreLength', label: 'Core Length' }, { key: 'CoreOD', label: 'Core OD' },
   { key: 'CurrentStage', label: 'Stage' }, { key: 'Status', label: 'Status' },
-  { key: 'CreatedDate', label: 'Created' }, { key: 'CreatedBy', label: 'Created By' }
+  { key: 'CreatedDate', label: 'Created', fmt: fmtDateCol }, { key: 'CreatedBy', label: 'Created By' }
 ];
 const WINDING_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'TotalQty', label: 'Total Qty' }, { key: 'BinsQty', label: 'Bins Qty' },
   { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' },
   { key: 'ProdSupervisor', label: 'Prod Supervisor' }, { key: 'PQA', label: 'PQA' }
 ];
 const SPRAY_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'GunDistance', label: 'Gun Distance' }, { key: 'SprayThickness', label: 'Spray Thickness' },
   { key: 'Side1WireSpeed', label: 'Side 1 Wire Speed' }, { key: 'Side2WireSpeed', label: 'Side 2 Wire Speed' }
 ].concat([1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return { key: 'Voltage_G' + i, label: 'Voltage G' + i }; }))
@@ -1030,30 +1147,30 @@ const SPRAY_COLUMNS = [
   { key: 'ProdSupervisor', label: 'Prod Supervisor' }
  ]);
 const HEATSTAB_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'ProcessTimeHrs', label: 'Process Time (Hrs)' }, { key: 'TimeIn', label: 'Time In' },
   { key: 'TimeOut', label: 'Time Out' }, { key: 'CoolingTimeHrs', label: 'Cooling Time (Hrs)' }, { key: 'TotalQty', label: 'Total Qty' },
   { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' }, { key: 'TraysQty', label: 'Trays Qty' },
   { key: 'OperatorName', label: 'Operator' }
 ];
 const SC_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'ClearingVoltageDC', label: 'Clearing Voltage DC' }, { key: 'ClearingVoltageAC', label: 'Clearing Voltage AC' },
   { key: 'ReactorBalancingMFD', label: 'Reactor Balancing MFD' }, { key: 'ClearingTimeSec', label: 'Clearing Time (Sec)' },
   { key: 'Tand1Khz', label: 'Tand@1KHz' }, { key: 'CapToleranceMin', label: 'Cap Tolerance (-)' }, { key: 'CapToleranceMax', label: 'Cap Tolerance (+)' },
   { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' },
   { key: 'DrumsQty', label: 'Drums Qty' }, { key: 'BinsQty', label: 'Bins Qty' }, { key: 'Weight', label: 'Weight' },
-  { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }, { key: 'RetestingStamp', label: 'Retesting Stamp' },
+  { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }, { key: 'RetestingStamp', label: 'Retesting Stamp', fmt: fmtBoolCol },
   { key: 'RetestClearingVoltageDC', label: 'Retest Voltage DC' }, { key: 'RetestClearingVoltageAC', label: 'Retest Voltage AC' },
   { key: 'RetestReactorBalancingMFD', label: 'Retest Reactor MFD' }, { key: 'RetestOperatorName', label: 'Retest Operator' }
 ];
 const SC_TESTING_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'RoundType', label: 'Round' }, { key: 'Date', label: 'Date' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'RoundType', label: 'Round' }, { key: 'Date', label: 'Date', fmt: fmtDateCol },
   { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'HVBurst', label: 'HV/Burst' },
   { key: 'CapPlus', label: 'Cap(+)' }, { key: 'CapMinus', label: 'Cap(-)' }, { key: 'Tand', label: 'Tand' }, { key: 'RejectionPct', label: 'Rejection %' }
 ];
 const WD_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'CopperStripWireSize', label: 'Copper Strip/Wire Size' }, { key: 'StrippingLength', label: 'Stripping Length' },
   { key: 'AssemblyDeltaWireType', label: 'Assembly Delta Wire Type' }, { key: 'WireGauge', label: 'Wire Gauge' }, { key: 'Resistor', label: 'Resistor' },
   { key: 'WireColor', label: 'Wire Color' }, { key: 'MetalTopConnection', label: 'Metal Top Connection' }, { key: 'TotalQty', label: 'Total Qty' },
@@ -1061,13 +1178,13 @@ const WD_COLUMNS = [
   { key: 'BinsQty', label: 'Bins Qty' }, { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }
 ];
 const PC_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'ResinWeight', label: 'Resin Weight' }, { key: 'CapacitorWeight', label: 'Capacitor Weight' },
   { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' },
   { key: 'DrumsQty', label: 'Drums Qty' }, { key: 'BinsQty', label: 'Bins Qty' }, { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }
 ];
 const EP_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'KV', label: 'KV' }, { key: 'VdcForSec', label: 'Vdc for Sec' }, { key: 'IPA', label: 'IPA' },
   { key: 'BatchLotNo', label: 'Batch/Lot No' }, { key: 'CapTolerance', label: 'Cap Tolerance' }, { key: 'MFD', label: 'MFD' },
   { key: 'Tand_1KHz_100Hz_50Hz', label: 'Tand @1KHz/100Hz/50Hz' }, { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' },
@@ -1075,7 +1192,7 @@ const EP_COLUMNS = [
   { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }
 ];
 const BD_COLUMNS = [
-  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date', fmt: fmtDateCol }, { key: 'Shift', label: 'Shift' },
   { key: 'MCNo', label: 'Machine' }, { key: 'BDV', label: 'BDV' }, { key: 'CapTolerance', label: 'Cap Tolerance' }, { key: 'MFD', label: 'MFD' },
   { key: 'Tand_1KHz_100Hz_50Hz', label: 'Tand @1KHz/100Hz/50Hz' }, { key: 'HVAC', label: 'HV AC' }, { key: 'VacForSec', label: 'Vac for Sec' },
   { key: 'PrintingVerifiedBy', label: 'Printing Verified By' }, { key: 'InnerBoxWeightKgs', label: 'Inner Box Weight (Kgs)' },
@@ -1428,7 +1545,6 @@ function getFilteredBatches() {
 function renderBatches() {
   document.getElementById('statTotalBatches').textContent = state.batches.length;
   document.getElementById('statInProcess').textContent = state.batches.filter(function (b) { return b.Status === 'In Process'; }).length;
-  document.getElementById('exportAllBtn').classList.toggle('hidden', !state.batchSearch);
 
   const rows = getFilteredBatches();
   const body = document.getElementById('batchesTableBody');
@@ -1512,8 +1628,9 @@ function openBatchReport(masterBatchNo) {
 function closeBatchReport() { document.getElementById('batchReportOverlay').classList.add('hidden'); state.openBatchNo = null; }
 
 // Full-detail version of the same report — every column for every stage,
-// not just the brief on-screen summary — bundled into one CSV so the
-// whole card's history can leave the app in a single click.
+// not just the brief on-screen summary. With styled Excel available this
+// becomes one workbook with a tab per stage; otherwise it falls back to
+// the sectioned CSV below.
 function exportBatchReport() {
   const masterBatchNo = state.openBatchNo;
   const b = state.batches.filter(function (x) { return x.MasterBatchNo === masterBatchNo; })[0];
@@ -1531,9 +1648,72 @@ function exportBatchReport() {
     { title: 'BDV & Final Testing', columns: BD_COLUMNS, rows: matchBatch(state.bdEntries, masterBatchNo) },
     { title: 'Final QA', columns: FQ_COLUMNS, rows: matchBatch(state.finalQaResults, masterBatchNo) }
   ];
-  downloadCsv(sectionsToCsv(sections), 'ele-tracker-' + masterBatchNo + '-full-report-' + todayStr() + '.csv');
+  if (!xlsxReady()) {
+    downloadCsv(sectionsToCsv(sections), 'ele-tracker-' + masterBatchNo + '-full-report-' + todayStr() + '.csv');
+    toast('Excel styling unavailable — exported CSV instead.', true);
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  const usedNames = {};
+  sections.forEach(function (s) {
+    let name = safeSheetName(s.title);
+    while (usedNames[name]) { name = safeSheetName(name + '2'); } // guard against name collisions after truncation
+    usedNames[name] = true;
+    XLSX.utils.book_append_sheet(wb, buildXlsxSheet(s.title, s.columns, s.rows), name);
+  });
+  XLSX.writeFile(wb, 'ele-tracker-' + masterBatchNo + '-full-report-' + todayStr() + '.xlsx');
   toast('Exported full report for ' + masterBatchNo + '.');
 }
+
+// ============================================================
+// EXPORT PICKER — "which batches?" step every Export button opens
+// before actually downloading. Every stage's Export button (and the
+// Dashboard's) calls openExportPicker() with the full row set it would
+// otherwise have exported directly; the picker narrows `rows` down to
+// the checked MasterBatchNos and hands the rest off to exportTable(),
+// same styled-Excel/CSV-fallback path as before.
+// ============================================================
+
+function batchPickerLabel(masterBatchNo) {
+  const b = state.batches.filter(function (x) { return x.MasterBatchNo === masterBatchNo; })[0];
+  return b ? (masterBatchNo + ' — ' + b.FGCode) : masterBatchNo;
+}
+
+function openExportPicker(rows, columns, filenamePrefix, sheetTitle) {
+  const allBatchNos = Array.from(new Set(rows.map(function (r) { return r.MasterBatchNo; }).filter(Boolean))).sort();
+  if (allBatchNos.length === 0) { toast('Nothing to export.', true); return; }
+  state.exportPicker = { rows: rows, columns: columns, filenamePrefix: filenamePrefix, sheetTitle: sheetTitle, allBatchNos: allBatchNos, checked: new Set(allBatchNos) };
+  document.getElementById('epTitle').textContent = 'Export — ' + sheetTitle;
+  document.getElementById('epSearchInput').value = '';
+  renderExportPickerList('');
+  document.getElementById('exportPickerOverlay').classList.remove('hidden');
+}
+
+// Re-renders the (possibly search-narrowed) checkbox list. Which batches
+// are *checked* lives in state.exportPicker.checked, independent of which
+// are currently visible — so searching to find one more batch never
+// silently unchecks the ones you already picked.
+function renderExportPickerList(filterText) {
+  const p = state.exportPicker;
+  const q = (filterText || '').trim().toLowerCase();
+  const visible = q ? p.allBatchNos.filter(function (no) { return batchPickerLabel(no).toLowerCase().indexOf(q) > -1; }) : p.allBatchNos;
+  document.getElementById('epList').innerHTML = visible.length
+    ? visible.map(function (no) {
+        return '<label class="ep-item"><input type="checkbox" data-batchno="' + escapeHtml(no) + '"' + (p.checked.has(no) ? ' checked' : '') + '><span class="mono">' + escapeHtml(batchPickerLabel(no)) + '</span></label>';
+      }).join('')
+    : '<div class="report-empty" style="padding:12px 4px">No batches match.</div>';
+  updateExportPickerCount();
+}
+function updateExportPickerCount() {
+  const p = state.exportPicker;
+  document.getElementById('epCount').textContent = p.checked.size + ' of ' + p.allBatchNos.length + ' selected';
+  document.getElementById('epExportBtn').disabled = p.checked.size === 0;
+  const selectAll = document.getElementById('epSelectAll');
+  selectAll.checked = p.checked.size === p.allBatchNos.length;
+  selectAll.indeterminate = p.checked.size > 0 && p.checked.size < p.allBatchNos.length;
+}
+function closeExportPicker() { document.getElementById('exportPickerOverlay').classList.add('hidden'); state.exportPicker = null; }
+
 function populateBatchDropdown() {
   const windingReady = state.batches.filter(function (b) { return b.CurrentStage === 'Winding' && b.Status === 'In Process'; });
   const lsSel = document.getElementById('lsMasterBatchNo');
@@ -1804,7 +1984,34 @@ document.getElementById('batchReportOverlay').addEventListener('click', function
   if (e.target === this) closeBatchReport();
 });
 document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape' && !document.getElementById('batchReportOverlay').classList.contains('hidden')) closeBatchReport();
+  if (e.key !== 'Escape') return;
+  if (!document.getElementById('exportPickerOverlay').classList.contains('hidden')) { closeExportPicker(); return; }
+  if (!document.getElementById('batchReportOverlay').classList.contains('hidden')) closeBatchReport();
+});
+
+document.getElementById('epSearchInput').addEventListener('input', function () { renderExportPickerList(this.value); });
+document.getElementById('epSelectAll').addEventListener('change', function () {
+  const p = state.exportPicker;
+  if (this.checked) { p.allBatchNos.forEach(function (no) { p.checked.add(no); }); }
+  else { p.checked.clear(); }
+  renderExportPickerList(document.getElementById('epSearchInput').value);
+});
+document.getElementById('epList').addEventListener('change', function (e) {
+  const cb = e.target.closest('input[type="checkbox"][data-batchno]');
+  if (!cb) return;
+  const no = cb.getAttribute('data-batchno');
+  if (cb.checked) state.exportPicker.checked.add(no); else state.exportPicker.checked.delete(no);
+  updateExportPickerCount();
+});
+document.getElementById('epCloseBtn').addEventListener('click', closeExportPicker);
+document.getElementById('epCancelBtn').addEventListener('click', closeExportPicker);
+document.getElementById('exportPickerOverlay').addEventListener('click', function (e) { if (e.target === this) closeExportPicker(); });
+document.getElementById('epExportBtn').addEventListener('click', function () {
+  const p = state.exportPicker;
+  const isPartial = p.checked.size < p.allBatchNos.length;
+  const filteredRows = p.rows.filter(function (r) { return p.checked.has(r.MasterBatchNo); });
+  exportTable(filteredRows, p.columns, p.filenamePrefix + (isPartial ? '-selected' : ''), p.sheetTitle);
+  closeExportPicker();
 });
 
 document.getElementById('createBatchForm').addEventListener('submit', async function (e) {
@@ -1892,22 +2099,14 @@ document.getElementById('refreshBatchesBtn').addEventListener('click', async fun
   try { await loadBatches(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportBtn').addEventListener('click', function () {
-  const rows = getFilteredBatches();
-  if (rows.length === 0) { toast('Nothing to export.', true); return; }
-  downloadCsv(batchesToCsv(rows), 'ele-tracker-batches' + (state.batchSearch ? '-filtered' : '') + '-' + todayStr() + '.csv');
-  toast('Exported ' + rows.length + ' batch' + (rows.length === 1 ? '' : 'es') + '.');
-});
-document.getElementById('exportAllBtn').addEventListener('click', function () {
-  if (state.batches.length === 0) { toast('Nothing to export.', true); return; }
-  downloadCsv(batchesToCsv(state.batches), 'ele-tracker-batches-all-' + todayStr() + '.csv');
-  toast('Exported ' + state.batches.length + ' batches.');
+  openExportPicker(state.batches, BATCH_COLUMNS, 'ele-tracker-batches', 'Batches');
 });
 document.getElementById('refreshWindingBtn').addEventListener('click', async function () {
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadWindingEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportWindingBtn').addEventListener('click', function () {
-  exportTableCsv(state.windingEntries, WINDING_COLUMNS, 'ele-tracker-winding');
+  openExportPicker(state.windingEntries, WINDING_COLUMNS, 'ele-tracker-winding', 'Winding');
 });
 
 document.getElementById('sprayForm').addEventListener('submit', async function (e) {
@@ -1950,7 +2149,7 @@ document.getElementById('refreshSprayBtn').addEventListener('click', async funct
   try { await loadSprayEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportSprayBtn').addEventListener('click', function () {
-  exportTableCsv(state.sprayEntries, SPRAY_COLUMNS, 'ele-tracker-spray');
+  openExportPicker(state.sprayEntries, SPRAY_COLUMNS, 'ele-tracker-spray', 'Spray & Core Cleaning');
 });
 
 document.getElementById('heatStabForm').addEventListener('submit', async function (e) {
@@ -1989,7 +2188,7 @@ document.getElementById('refreshHeatStabBtn').addEventListener('click', async fu
   try { await loadHeatStabEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportHeatStabBtn').addEventListener('click', function () {
-  exportTableCsv(state.heatStabEntries, HEATSTAB_COLUMNS, 'ele-tracker-heat-stabilization');
+  openExportPicker(state.heatStabEntries, HEATSTAB_COLUMNS, 'ele-tracker-heat-stabilization', 'Heat Stabilization');
 });
 
 document.getElementById('shortClearingForm').addEventListener('submit', async function (e) {
@@ -2041,14 +2240,14 @@ document.getElementById('refreshScBtn').addEventListener('click', async function
   try { await loadScEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportScBtn').addEventListener('click', function () {
-  exportTableCsv(state.scEntries, SC_COLUMNS, 'ele-tracker-short-clearing');
+  openExportPicker(state.scEntries, SC_COLUMNS, 'ele-tracker-short-clearing', 'Short Clearing');
 });
 document.getElementById('refreshScTestBtn').addEventListener('click', async function () {
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadScTestResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportScTestBtn').addEventListener('click', function () {
-  exportTableCsv(state.scTestResults, SC_TESTING_COLUMNS, 'ele-tracker-short-clearing-testing');
+  openExportPicker(state.scTestResults, SC_TESTING_COLUMNS, 'ele-tracker-short-clearing-testing', 'Short Clearing Testing');
 });
 
 document.getElementById('weldingForm').addEventListener('submit', async function (e) {
@@ -2092,7 +2291,7 @@ document.getElementById('refreshWdBtn').addEventListener('click', async function
   try { await loadWdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportWdBtn').addEventListener('click', function () {
-  exportTableCsv(state.wdEntries, WD_COLUMNS, 'ele-tracker-welding');
+  openExportPicker(state.wdEntries, WD_COLUMNS, 'ele-tracker-welding', 'Welding');
 });
 
 document.getElementById('pouringCuringForm').addEventListener('submit', async function (e) {
@@ -2131,7 +2330,7 @@ document.getElementById('refreshPcBtn').addEventListener('click', async function
   try { await loadPcEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportPcBtn').addEventListener('click', function () {
-  exportTableCsv(state.pcEntries, PC_COLUMNS, 'ele-tracker-pouring-curing');
+  openExportPicker(state.pcEntries, PC_COLUMNS, 'ele-tracker-pouring-curing', 'Pouring & Curing');
 });
 
 document.getElementById('electricalPackingForm').addEventListener('submit', async function (e) {
@@ -2175,7 +2374,7 @@ document.getElementById('refreshEpBtn').addEventListener('click', async function
   try { await loadEpEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportEpBtn').addEventListener('click', function () {
-  exportTableCsv(state.epEntries, EP_COLUMNS, 'ele-tracker-electrical-packing');
+  openExportPicker(state.epEntries, EP_COLUMNS, 'ele-tracker-electrical-packing', 'Electrical Testing & Packing');
 });
 
 document.getElementById('bdvForm').addEventListener('submit', async function (e) {
@@ -2225,7 +2424,7 @@ document.getElementById('refreshBdBtn').addEventListener('click', async function
   try { await loadBdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportBdBtn').addEventListener('click', function () {
-  exportTableCsv(state.bdEntries, BD_COLUMNS, 'ele-tracker-bdv');
+  openExportPicker(state.bdEntries, BD_COLUMNS, 'ele-tracker-bdv', 'BDV & Final Testing');
 });
 
 document.getElementById('finalQaForm').addEventListener('submit', async function (e) {
@@ -2257,7 +2456,7 @@ document.getElementById('refreshFqBtn').addEventListener('click', async function
   try { await loadFinalQaResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
 document.getElementById('exportFqBtn').addEventListener('click', function () {
-  exportTableCsv(state.finalQaResults, FQ_COLUMNS, 'ele-tracker-final-qa');
+  openExportPicker(state.finalQaResults, FQ_COLUMNS, 'ele-tracker-final-qa', 'Final QA');
 });
 
 if ('serviceWorker' in navigator) {
