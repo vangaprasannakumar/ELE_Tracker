@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f8fafc" id="metaThemeColor">
-<meta name="app-version" content="0.6.0">
+<meta name="app-version" content="0.6.3">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://i.postimg.cc/HxdkG3R1/CALGAS-CAPACITORS-LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/76wZvXdD/CALGAS-CAPACITORS-LOGO-512x512.jpg">
@@ -406,7 +406,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Winding entries</h2><button class="btn-ghost" id="refreshWindingBtn">Refresh</button><span class="freshness-label" id="windingFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Winding entries</h2><button class="btn-ghost" id="exportWindingBtn">Export</button><button class="btn-ghost" id="refreshWindingBtn">Refresh</button><span class="freshness-label" id="windingFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Bins Qty</th><th>Operator</th></tr></thead>
         <tbody id="windingTableBody"></tbody>
@@ -462,7 +462,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Spray entries</h2><button class="btn-ghost" id="refreshSprayBtn">Refresh</button><span class="freshness-label" id="sprayFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Spray entries</h2><button class="btn-ghost" id="exportSprayBtn">Export</button><button class="btn-ghost" id="refreshSprayBtn">Refresh</button><span class="freshness-label" id="sprayFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="sprayTableBody"></tbody>
@@ -506,7 +506,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Heat Stabilization entries</h2><button class="btn-ghost" id="refreshHeatStabBtn">Refresh</button><span class="freshness-label" id="heatStabFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Heat Stabilization entries</h2><button class="btn-ghost" id="exportHeatStabBtn">Export</button><button class="btn-ghost" id="refreshHeatStabBtn">Refresh</button><span class="freshness-label" id="heatStabFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="heatStabTableBody"></tbody>
@@ -566,6 +566,16 @@
         </table>
         </div>
 
+        <h3>Retest readings <span class="hint">(if retested — separate from the initial readings above)</span></h3>
+        <div class="field-row">
+          <div class="field"><label for="scRetestClearingVoltageDC">Retest voltage DC</label><input type="text" id="scRetestClearingVoltageDC"></div>
+          <div class="field"><label for="scRetestClearingVoltageAC">Retest voltage AC</label><input type="text" id="scRetestClearingVoltageAC"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="scRetestReactorBalancingMFD">Retest reactor balancing (MFD)</label><input type="text" id="scRetestReactorBalancingMFD"></div>
+          <div class="field"><label for="scRetestOperatorName">Retest operator</label><select id="scRetestOperatorName"></select></div>
+        </div>
+
         <div class="field-checkbox" style="margin-top:14px"><input type="checkbox" id="scRetestingStamp"><label for="scRetestingStamp">Retesting stamp applied</label></div>
         <div class="field"><label for="scRemarks">Remarks</label><input type="text" id="scRemarks"></div>
 
@@ -574,7 +584,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Short Clearing entries</h2><button class="btn-ghost" id="refreshScBtn">Refresh</button><span class="freshness-label" id="scFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Short Clearing entries</h2><button class="btn-ghost" id="exportScBtn">Export</button><button class="btn-ghost" id="refreshScBtn">Refresh</button><span class="freshness-label" id="scFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="scTableBody"></tbody>
@@ -582,7 +592,7 @@
     </div>
 
     <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Short Clearing test results</h2><button class="btn-ghost" id="refreshScTestBtn">Refresh</button><span class="freshness-label" id="scTestFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Short Clearing test results</h2><button class="btn-ghost" id="exportScTestBtn">Export</button><button class="btn-ghost" id="refreshScTestBtn">Refresh</button><span class="freshness-label" id="scTestFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Round</th><th>Date</th><th>Total</th><th>Good</th><th>Rejection %</th></tr></thead>
         <tbody id="scTestTableBody"></tbody>
@@ -634,7 +644,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Welding entries</h2><button class="btn-ghost" id="refreshWdBtn">Refresh</button><span class="freshness-label" id="wdFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Welding entries</h2><button class="btn-ghost" id="exportWdBtn">Export</button><button class="btn-ghost" id="refreshWdBtn">Refresh</button><span class="freshness-label" id="wdFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="wdTableBody"></tbody>
@@ -677,7 +687,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Pouring &amp; Curing entries</h2><button class="btn-ghost" id="refreshPcBtn">Refresh</button><span class="freshness-label" id="pcFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Pouring &amp; Curing entries</h2><button class="btn-ghost" id="exportPcBtn">Export</button><button class="btn-ghost" id="refreshPcBtn">Refresh</button><span class="freshness-label" id="pcFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="pcTableBody"></tbody>
@@ -730,7 +740,7 @@
     </div>
 
     <div class="section">
-      <div class="toolbar"><h2 style="margin:0">Electrical Testing &amp; Packing entries</h2><button class="btn-ghost" id="refreshEpBtn">Refresh</button><span class="freshness-label" id="epFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Electrical Testing &amp; Packing entries</h2><button class="btn-ghost" id="exportEpBtn">Export</button><button class="btn-ghost" id="refreshEpBtn">Refresh</button><span class="freshness-label" id="epFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="epTableBody"></tbody>
@@ -802,7 +812,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">BDV &amp; Final Testing entries</h2><button class="btn-ghost" id="refreshBdBtn">Refresh</button><span class="freshness-label" id="bdFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">BDV &amp; Final Testing entries</h2><button class="btn-ghost" id="exportBdBtn">Export</button><button class="btn-ghost" id="refreshBdBtn">Refresh</button><span class="freshness-label" id="bdFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Date</th><th>Shift</th><th>Machine</th><th>Total Qty</th><th>Good Qty</th><th>Reject Qty</th></tr></thead>
         <tbody id="bdTableBody"></tbody>
@@ -816,19 +826,19 @@
       <h2 class="stage-heading">Final QA</h2>
     <div class="section card hidden" id="finalQaCard">
       <h2>Final QA Inspection</h2>
-      <p class="lede" style="margin-bottom:14px">Last stage on the card — submitting here marks the batch Complete. Name a test type per row and fill in a reading for each sample that was tested.</p>
+      <p class="lede" style="margin-bottom:14px">Last stage on the card — submitting here marks the batch Complete. Fill in whichever readings were tested for each sample.</p>
       <form id="finalQaForm">
         <div class="field"><label for="fqMasterBatchNo">Master batch no</label><select id="fqMasterBatchNo" required></select></div>
 
         <h3>Test results</h3>
         <div style="overflow-x:auto">
         <table class="flgrid" style="min-width:520px">
-          <thead><tr><th style="text-align:left">Test type</th><th>Sample 1</th><th>Sample 2</th><th>Sample 3</th><th>Sample 4</th></tr></thead>
+          <thead><tr><th style="text-align:left">Final QA test insp.</th><th>Sample 1</th><th>Sample 2</th><th>Sample 3</th><th>Sample 4</th></tr></thead>
           <tbody id="fqResultsRows"></tbody>
         </table>
         </div>
 
-        <div class="field"><label for="fqFoaInspectorName">FOA inspector name</label><input type="text" id="fqFoaInspectorName"></div>
+        <div class="field"><label for="fqFoaInspectorName">FOA inspector name</label><select id="fqFoaInspectorName"></select></div>
         <div class="field"><label for="fqNotes">Notes</label><input type="text" id="fqNotes"></div>
 
         <div class="form-error" id="finalQaError"></div>
@@ -836,7 +846,7 @@
       </form>
     </div>
 
-      <div class="toolbar"><h2 style="margin:0">Final QA results</h2><button class="btn-ghost" id="refreshFqBtn">Refresh</button><span class="freshness-label" id="fqFreshness"></span></div>
+      <div class="toolbar"><h2 style="margin:0">Final QA results</h2><button class="btn-ghost" id="exportFqBtn">Export</button><button class="btn-ghost" id="refreshFqBtn">Refresh</button><span class="freshness-label" id="fqFreshness"></span></div>
       <table>
         <thead><tr><th>Master Batch No</th><th>Test Type</th><th>Sample ID</th><th>Reading</th><th>FOA Inspector</th></tr></thead>
         <tbody id="fqTableBody"></tbody>
@@ -855,9 +865,12 @@
         <h2 class="mono" id="brMasterBatchNo" style="margin:0 0 4px">—</h2>
         <div class="lede" id="brSubline" style="margin:0"></div>
       </div>
-      <button class="btn-ghost theme-btn" id="brCloseBtn" title="Close" aria-label="Close">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
+      <div style="display:flex; gap:8px; flex-shrink:0">
+        <button class="btn-ghost" id="brExportBtn">Export report</button>
+        <button class="btn-ghost theme-btn" id="brCloseBtn" title="Close" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
     </div>
     <div class="modal-body" id="brBody"></div>
   </div>
@@ -870,7 +883,7 @@ const REDUCE_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-m
 
 const state = {
   session: null, who: null, dropdowns: {}, fgCatalog: [],
-  batches: [], batchesLastUpdated: null, batchSearch: '',
+  batches: [], batchesLastUpdated: null, batchSearch: '', openBatchNo: null,
   windingEntries: [], windingLastUpdated: null,
   sprayEntries: [], sprayLastUpdated: null,
   heatStabEntries: [], heatStabLastUpdated: null,
@@ -953,6 +966,128 @@ function downloadCsv(csvContent, filename) {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
 }
+
+// Generic row-set -> CSV, driven by a {key, label} column list so each
+// stage only has to declare its columns once and gets both a standalone
+// "Export" button and a slot in the full batch-report export for free.
+function rowsToCsvLines(rows, columns) {
+  const lines = [columns.map(function (c) { return c.label; }).map(csvEscape).join(',')];
+  rows.forEach(function (r) {
+    lines.push(columns.map(function (c) { return csvEscape(r[c.key]); }).join(','));
+  });
+  return lines;
+}
+function exportTableCsv(rows, columns, filenamePrefix) {
+  if (rows.length === 0) { toast('Nothing to export.', true); return; }
+  downloadCsv(rowsToCsvLines(rows, columns).join('\r\n'), filenamePrefix + '-' + todayStr() + '.csv');
+  toast('Exported ' + rows.length + ' row' + (rows.length === 1 ? '' : 's') + '.');
+}
+// Stacks several {title, columns, rows} sections into one CSV — used for
+// the "everything for this one batch" export from the report modal.
+function sectionsToCsv(sections) {
+  return sections.map(function (s) {
+    const body = s.rows.length === 0 ? [csvEscape('(not logged yet)')] : rowsToCsvLines(s.rows, s.columns).slice(1);
+    return csvEscape(s.title) + '\r\n' + columnHeaderLine(s.columns) + '\r\n' + body.join('\r\n');
+  }).join('\r\n\r\n');
+}
+function columnHeaderLine(columns) { return columns.map(function (c) { return c.label; }).map(csvEscape).join(','); }
+
+// One column list per sheet — key must match the field name the backend
+// returns; label is what shows up in Excel. Field names taken straight
+// from each stage's schema in Setup.gs.
+const BATCH_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'FGCode', label: 'FG Code' },
+  { key: 'CustomerName', label: 'Customer' }, { key: 'WindingProgramNo', label: 'Winding Program No' },
+  { key: 'CycleTime', label: 'Cycle Time' }, { key: 'DrawingNo', label: 'Drawing No' },
+  { key: 'ElementBatchNo', label: 'Element Batch No' }, { key: 'DatePlanning', label: 'Date Planning' },
+  { key: 'MFD', label: 'MFD' }, { key: 'Voltage', label: 'Voltage' }, { key: 'BatchQty', label: 'Batch Qty' },
+  { key: 'FilmBatchNo', label: 'Film Batch No' }, { key: 'InputMaterialThicknessMicron', label: 'Input Thickness (Micron)' },
+  { key: 'InputMaterialWidth', label: 'Input Width' }, { key: 'TypeOfFilm', label: 'Type Of Film' },
+  { key: 'WaveCut', label: 'Wave Cut' }, { key: 'FreeMargin', label: 'Free Margin' },
+  { key: 'MPPFilmTurns', label: 'MPP Film Turns' }, { key: 'Resistivity', label: 'Resistivity' },
+  { key: 'WrappingTurns', label: 'Wrapping Turns' }, { key: 'ReDie', label: 'Re-Die' },
+  { key: 'CanSize', label: 'Can Size' }, { key: 'BarrierHeightTurns', label: 'Barrier Height & Turns' },
+  { key: 'CoreLength', label: 'Core Length' }, { key: 'CoreOD', label: 'Core OD' },
+  { key: 'CurrentStage', label: 'Stage' }, { key: 'Status', label: 'Status' },
+  { key: 'CreatedDate', label: 'Created' }, { key: 'CreatedBy', label: 'Created By' }
+];
+const WINDING_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'TotalQty', label: 'Total Qty' }, { key: 'BinsQty', label: 'Bins Qty' },
+  { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' },
+  { key: 'ProdSupervisor', label: 'Prod Supervisor' }, { key: 'PQA', label: 'PQA' }
+];
+const SPRAY_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'GunDistance', label: 'Gun Distance' }, { key: 'SprayThickness', label: 'Spray Thickness' },
+  { key: 'Side1WireSpeed', label: 'Side 1 Wire Speed' }, { key: 'Side2WireSpeed', label: 'Side 2 Wire Speed' }
+].concat([1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return { key: 'Voltage_G' + i, label: 'Voltage G' + i }; }))
+ .concat([1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return { key: 'Current_G' + i, label: 'Current G' + i }; }))
+ .concat([1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return { key: 'AirPressure_AP' + i, label: 'Air Pressure AP' + i }; }))
+ .concat([
+  { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' },
+  { key: 'TraysQty', label: 'Trays Qty' }, { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' },
+  { key: 'ProdSupervisor', label: 'Prod Supervisor' }
+ ]);
+const HEATSTAB_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'ProcessTimeHrs', label: 'Process Time (Hrs)' }, { key: 'TimeIn', label: 'Time In' },
+  { key: 'TimeOut', label: 'Time Out' }, { key: 'CoolingTimeHrs', label: 'Cooling Time (Hrs)' }, { key: 'TotalQty', label: 'Total Qty' },
+  { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' }, { key: 'TraysQty', label: 'Trays Qty' },
+  { key: 'OperatorName', label: 'Operator' }
+];
+const SC_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'ClearingVoltageDC', label: 'Clearing Voltage DC' }, { key: 'ClearingVoltageAC', label: 'Clearing Voltage AC' },
+  { key: 'ReactorBalancingMFD', label: 'Reactor Balancing MFD' }, { key: 'ClearingTimeSec', label: 'Clearing Time (Sec)' },
+  { key: 'Tand1Khz', label: 'Tand@1KHz' }, { key: 'CapToleranceMin', label: 'Cap Tolerance (-)' }, { key: 'CapToleranceMax', label: 'Cap Tolerance (+)' },
+  { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' },
+  { key: 'DrumsQty', label: 'Drums Qty' }, { key: 'BinsQty', label: 'Bins Qty' }, { key: 'Weight', label: 'Weight' },
+  { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }, { key: 'RetestingStamp', label: 'Retesting Stamp' },
+  { key: 'RetestClearingVoltageDC', label: 'Retest Voltage DC' }, { key: 'RetestClearingVoltageAC', label: 'Retest Voltage AC' },
+  { key: 'RetestReactorBalancingMFD', label: 'Retest Reactor MFD' }, { key: 'RetestOperatorName', label: 'Retest Operator' }
+];
+const SC_TESTING_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'RoundType', label: 'Round' }, { key: 'Date', label: 'Date' },
+  { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'HVBurst', label: 'HV/Burst' },
+  { key: 'CapPlus', label: 'Cap(+)' }, { key: 'CapMinus', label: 'Cap(-)' }, { key: 'Tand', label: 'Tand' }, { key: 'RejectionPct', label: 'Rejection %' }
+];
+const WD_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'CopperStripWireSize', label: 'Copper Strip/Wire Size' }, { key: 'StrippingLength', label: 'Stripping Length' },
+  { key: 'AssemblyDeltaWireType', label: 'Assembly Delta Wire Type' }, { key: 'WireGauge', label: 'Wire Gauge' }, { key: 'Resistor', label: 'Resistor' },
+  { key: 'WireColor', label: 'Wire Color' }, { key: 'MetalTopConnection', label: 'Metal Top Connection' }, { key: 'TotalQty', label: 'Total Qty' },
+  { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' }, { key: 'DrumsQty', label: 'Drums Qty' },
+  { key: 'BinsQty', label: 'Bins Qty' }, { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }
+];
+const PC_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'ResinWeight', label: 'Resin Weight' }, { key: 'CapacitorWeight', label: 'Capacitor Weight' },
+  { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' },
+  { key: 'DrumsQty', label: 'Drums Qty' }, { key: 'BinsQty', label: 'Bins Qty' }, { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }
+];
+const EP_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'KV', label: 'KV' }, { key: 'VdcForSec', label: 'Vdc for Sec' }, { key: 'IPA', label: 'IPA' },
+  { key: 'BatchLotNo', label: 'Batch/Lot No' }, { key: 'CapTolerance', label: 'Cap Tolerance' }, { key: 'MFD', label: 'MFD' },
+  { key: 'Tand_1KHz_100Hz_50Hz', label: 'Tand @1KHz/100Hz/50Hz' }, { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' },
+  { key: 'RejectQty', label: 'Reject Qty' }, { key: 'DrumsQty', label: 'Drums Qty' }, { key: 'BinsQty', label: 'Bins Qty' },
+  { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }
+];
+const BD_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'Date', label: 'Date' }, { key: 'Shift', label: 'Shift' },
+  { key: 'MCNo', label: 'Machine' }, { key: 'BDV', label: 'BDV' }, { key: 'CapTolerance', label: 'Cap Tolerance' }, { key: 'MFD', label: 'MFD' },
+  { key: 'Tand_1KHz_100Hz_50Hz', label: 'Tand @1KHz/100Hz/50Hz' }, { key: 'HVAC', label: 'HV AC' }, { key: 'VacForSec', label: 'Vac for Sec' },
+  { key: 'PrintingVerifiedBy', label: 'Printing Verified By' }, { key: 'InnerBoxWeightKgs', label: 'Inner Box Weight (Kgs)' },
+  { key: 'MasterBoxWeightKgs', label: 'Master Box Weight (Kgs)' }, { key: 'CapacitorsPerBox', label: 'Capacitors/Box' }, { key: 'TotalBoxes', label: 'Total Boxes' },
+  { key: 'VisualInspectionSampleSize', label: 'Visual Insp. Sample Size' }, { key: 'ElectricalInspectionSampleSize', label: 'Electrical Insp. Sample Size' },
+  { key: 'TotalQty', label: 'Total Qty' }, { key: 'GoodQty', label: 'Good Qty' }, { key: 'RejectQty', label: 'Reject Qty' },
+  { key: 'TraysQty', label: 'Trays Qty' }, { key: 'BinsQty', label: 'Bins Qty' }, { key: 'OperatorName', label: 'Operator' }, { key: 'Remarks', label: 'Remarks' }
+];
+const FQ_COLUMNS = [
+  { key: 'MasterBatchNo', label: 'Master Batch No' }, { key: 'TestType', label: 'Test Type' }, { key: 'SampleID', label: 'Sample' },
+  { key: 'Reading', label: 'Reading' }, { key: 'FOAInspectorName', label: 'FOA Inspector' }, { key: 'Notes', label: 'Notes' }
+];
 
 // Theme — persisted in localStorage, falls back to system preference.
 function initTheme() {
@@ -1060,35 +1195,37 @@ async function enterApp() {
   fillSelect('cbCanSize', state.dropdowns.CanSize || [], 'Select…');
   fillSelect('cbShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('cbMcNo', state.dropdowns.Machines_Winding || [], 'Select…');
-  fillSelect('cbOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('cbOperatorName', state.dropdowns.Operators_Winding || [], 'Select…');
   fillSelect('lsShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('lsMcNo', state.dropdowns.Machines_Winding || [], 'Select…');
-  fillSelect('lsOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('lsOperatorName', state.dropdowns.Operators_Winding || [], 'Select…');
   fillSelect('spShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('spMcNo', state.dropdowns.Machines_Spray || [], 'Select…');
-  fillSelect('spOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('spOperatorName', state.dropdowns.Operators_Spray || [], 'Select…');
   fillSelect('hsShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('hsMcNo', state.dropdowns.Machines_HeatStab || [], 'Select…');
   fillSelect('hsProcessTimeHrs', state.dropdowns.ProcessTimeOptions || [], 'Select…');
   fillSelect('hsCoolingTimeHrs', state.dropdowns.CoolingTimeOptions || [], 'Select…');
-  fillSelect('hsOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('hsOperatorName', state.dropdowns.Operators_HeatStab || [], 'Select…');
   fillSelect('scShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('scMcNo', state.dropdowns.Machines_ShortClearing || [], 'Select…');
-  fillSelect('scOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('scOperatorName', state.dropdowns.Operators_ShortClearing || [], 'Select…');
+  fillSelect('scRetestOperatorName', state.dropdowns.Operators_ShortClearing || [], 'Select…');
   fillSelect('wdShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('wdMcNo', state.dropdowns.Machines_Welding || [], 'Select…');
   fillSelect('wdAssemblyDeltaWireType', state.dropdowns.AssemblyDeltaWireType || [], 'Select…');
   fillSelect('wdMetalTopConnection', state.dropdowns.MetalTopConnection || [], 'Select…');
-  fillSelect('wdOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('wdOperatorName', state.dropdowns.Operators_Welding || [], 'Select…');
   fillSelect('pcShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('pcMcNo', state.dropdowns.Machines_PouringCuring || [], 'Select…');
-  fillSelect('pcOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('pcOperatorName', state.dropdowns.Operators_PouringCuring || [], 'Select…');
   fillSelect('epShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('epMcNo', state.dropdowns.Machines_ElectricalPacking || [], 'Select…');
-  fillSelect('epOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('epOperatorName', state.dropdowns.Operators_ElectricalPacking || [], 'Select…');
   fillSelect('bdShift', state.dropdowns.Shifts || [], 'Select…');
   fillSelect('bdMcNo', state.dropdowns.Machines_BDV || [], 'Select…');
-  fillSelect('bdOperatorName', state.dropdowns.Staff || [], 'Select…');
+  fillSelect('bdOperatorName', state.dropdowns.Operators_BDV || [], 'Select…');
+  fillSelect('fqFoaInspectorName', state.dropdowns.Operators_FinalQA || [], 'Select…');
   document.getElementById('customerOptions').innerHTML = (state.dropdowns.CustomerNames || []).map(function (c) { return '<option value="' + escapeHtml(c) + '">'; }).join('');
   document.getElementById('cbDate').value = todayStr();
   document.getElementById('lsDate').value = todayStr();
@@ -1223,31 +1360,37 @@ function collectScTestingRounds() {
   return rounds;
 }
 
-// Final QA's test x sample grid — up to 4 test types (typed in per row) x
-// up to 4 samples per test. Only rows with a test type filled in, and only
-// samples with a reading filled in within those rows, get submitted.
+// Final QA's test x sample grid — fixed rows straight off the physical
+// card. The card's first three rows are each labelled "Cap./Tand @ 1KHz"
+// with a diagonal split per cell (two readings in one box); since
+// FinalQA_Results only has one Reading column per row, that's captured
+// here as two separate rows (Cap and Tand) per phase instead of one row
+// with two values — same data, no backend schema change needed. Sample
+// count assumed at 4 (S1–S4); adjust FQ_SAMPLE_IDS if the card is 5-wide.
 const FQ_SAMPLE_IDS = [1, 2, 3, 4];
+const FQ_TEST_ROWS = [
+  'AC Cap. @ 1KHz', 'AC Tand @ 1KHz',
+  'YB Cap. @ 1KHz', 'YB Tand @ 1KHz',
+  'BN Cap. @ 1KHz', 'BN Tand @ 1KHz',
+  'Discharge Test µR'
+];
 function buildFinalQaGrid() {
   const body = document.getElementById('fqResultsRows');
-  let html = '';
-  for (let row = 1; row <= 4; row++) {
-    html += '<tr><td><input type="text" data-fqtesttype="' + row + '" placeholder="Test ' + row + '"></td>' +
-      FQ_SAMPLE_IDS.map(function (s) { return '<td><input type="text" data-fqrow="' + row + '" data-fqsample="' + s + '"></td>'; }).join('') +
+  body.innerHTML = FQ_TEST_ROWS.map(function (label, i) {
+    return '<tr><td>' + escapeHtml(label) + '</td>' +
+      FQ_SAMPLE_IDS.map(function (s) { return '<td><input type="text" data-fqrow="' + i + '" data-fqsample="' + s + '"></td>'; }).join('') +
       '</tr>';
-  }
-  body.innerHTML = html;
+  }).join('');
 }
 function collectFinalQaResults() {
   const results = [];
-  for (let row = 1; row <= 4; row++) {
-    const testType = document.querySelector('[data-fqtesttype="' + row + '"]').value.trim();
-    if (!testType) continue;
+  FQ_TEST_ROWS.forEach(function (label, i) {
     FQ_SAMPLE_IDS.forEach(function (s) {
-      const el = document.querySelector('[data-fqrow="' + row + '"][data-fqsample="' + s + '"]');
+      const el = document.querySelector('[data-fqrow="' + i + '"][data-fqsample="' + s + '"]');
       const reading = el ? el.value.trim() : '';
-      if (reading) results.push({ testType: testType, sampleId: String(s), reading: reading });
+      if (reading) results.push({ testType: label, sampleId: String(s), reading: reading });
     });
-  }
+  });
   return results;
 }
 
@@ -1329,6 +1472,7 @@ function reportStage(label, rows, lineFn, extraHtml) {
 function openBatchReport(masterBatchNo) {
   const b = state.batches.filter(function (x) { return x.MasterBatchNo === masterBatchNo; })[0];
   if (!b) return;
+  state.openBatchNo = masterBatchNo;
 
   document.getElementById('brMasterBatchNo').textContent = b.MasterBatchNo;
   document.getElementById('brSubline').textContent = b.FGCode + ' — ' + (b.CustomerName || 'No customer');
@@ -1365,7 +1509,31 @@ function openBatchReport(masterBatchNo) {
   document.getElementById('brBody').innerHTML = html;
   document.getElementById('batchReportOverlay').classList.remove('hidden');
 }
-function closeBatchReport() { document.getElementById('batchReportOverlay').classList.add('hidden'); }
+function closeBatchReport() { document.getElementById('batchReportOverlay').classList.add('hidden'); state.openBatchNo = null; }
+
+// Full-detail version of the same report — every column for every stage,
+// not just the brief on-screen summary — bundled into one CSV so the
+// whole card's history can leave the app in a single click.
+function exportBatchReport() {
+  const masterBatchNo = state.openBatchNo;
+  const b = state.batches.filter(function (x) { return x.MasterBatchNo === masterBatchNo; })[0];
+  if (!b) return;
+  const sections = [
+    { title: 'Batch', columns: BATCH_COLUMNS, rows: [b] },
+    { title: 'Winding', columns: WINDING_COLUMNS, rows: matchBatch(state.windingEntries, masterBatchNo) },
+    { title: 'Spray & Core Cleaning', columns: SPRAY_COLUMNS, rows: matchBatch(state.sprayEntries, masterBatchNo) },
+    { title: 'Heat Stabilization', columns: HEATSTAB_COLUMNS, rows: matchBatch(state.heatStabEntries, masterBatchNo) },
+    { title: 'Short Clearing', columns: SC_COLUMNS, rows: matchBatch(state.scEntries, masterBatchNo) },
+    { title: 'Short Clearing Testing', columns: SC_TESTING_COLUMNS, rows: matchBatch(state.scTestResults, masterBatchNo) },
+    { title: 'Welding', columns: WD_COLUMNS, rows: matchBatch(state.wdEntries, masterBatchNo) },
+    { title: 'Pouring & Curing', columns: PC_COLUMNS, rows: matchBatch(state.pcEntries, masterBatchNo) },
+    { title: 'Electrical Testing & Packing', columns: EP_COLUMNS, rows: matchBatch(state.epEntries, masterBatchNo) },
+    { title: 'BDV & Final Testing', columns: BD_COLUMNS, rows: matchBatch(state.bdEntries, masterBatchNo) },
+    { title: 'Final QA', columns: FQ_COLUMNS, rows: matchBatch(state.finalQaResults, masterBatchNo) }
+  ];
+  downloadCsv(sectionsToCsv(sections), 'ele-tracker-' + masterBatchNo + '-full-report-' + todayStr() + '.csv');
+  toast('Exported full report for ' + masterBatchNo + '.');
+}
 function populateBatchDropdown() {
   const windingReady = state.batches.filter(function (b) { return b.CurrentStage === 'Winding' && b.Status === 'In Process'; });
   const lsSel = document.getElementById('lsMasterBatchNo');
@@ -1631,6 +1799,7 @@ document.getElementById('batchesTableBody').addEventListener('click', function (
   if (row) openBatchReport(row.getAttribute('data-batch'));
 });
 document.getElementById('brCloseBtn').addEventListener('click', closeBatchReport);
+document.getElementById('brExportBtn').addEventListener('click', exportBatchReport);
 document.getElementById('batchReportOverlay').addEventListener('click', function (e) {
   if (e.target === this) closeBatchReport();
 });
@@ -1737,6 +1906,9 @@ document.getElementById('refreshWindingBtn').addEventListener('click', async fun
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadWindingEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
+document.getElementById('exportWindingBtn').addEventListener('click', function () {
+  exportTableCsv(state.windingEntries, WINDING_COLUMNS, 'ele-tracker-winding');
+});
 
 document.getElementById('sprayForm').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -1777,6 +1949,9 @@ document.getElementById('refreshSprayBtn').addEventListener('click', async funct
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadSprayEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
+document.getElementById('exportSprayBtn').addEventListener('click', function () {
+  exportTableCsv(state.sprayEntries, SPRAY_COLUMNS, 'ele-tracker-spray');
+});
 
 document.getElementById('heatStabForm').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -1813,6 +1988,9 @@ document.getElementById('refreshHeatStabBtn').addEventListener('click', async fu
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadHeatStabEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
+document.getElementById('exportHeatStabBtn').addEventListener('click', function () {
+  exportTableCsv(state.heatStabEntries, HEATSTAB_COLUMNS, 'ele-tracker-heat-stabilization');
+});
 
 document.getElementById('shortClearingForm').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -1843,6 +2021,10 @@ document.getElementById('shortClearingForm').addEventListener('submit', async fu
       weight: document.getElementById('scWeight').value.trim(),
       operatorName: document.getElementById('scOperatorName').value,
       remarks: document.getElementById('scRemarks').value.trim(),
+      retestClearingVoltageDC: document.getElementById('scRetestClearingVoltageDC').value.trim(),
+      retestClearingVoltageAC: document.getElementById('scRetestClearingVoltageAC').value.trim(),
+      retestReactorBalancingMFD: document.getElementById('scRetestReactorBalancingMFD').value.trim(),
+      retestOperatorName: document.getElementById('scRetestOperatorName').value,
       retestingStamp: document.getElementById('scRetestingStamp').checked,
       testingRounds: collectScTestingRounds()
     });
@@ -1858,9 +2040,15 @@ document.getElementById('refreshScBtn').addEventListener('click', async function
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadScEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
+document.getElementById('exportScBtn').addEventListener('click', function () {
+  exportTableCsv(state.scEntries, SC_COLUMNS, 'ele-tracker-short-clearing');
+});
 document.getElementById('refreshScTestBtn').addEventListener('click', async function () {
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadScTestResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
+});
+document.getElementById('exportScTestBtn').addEventListener('click', function () {
+  exportTableCsv(state.scTestResults, SC_TESTING_COLUMNS, 'ele-tracker-short-clearing-testing');
 });
 
 document.getElementById('weldingForm').addEventListener('submit', async function (e) {
@@ -1903,6 +2091,9 @@ document.getElementById('refreshWdBtn').addEventListener('click', async function
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadWdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
+document.getElementById('exportWdBtn').addEventListener('click', function () {
+  exportTableCsv(state.wdEntries, WD_COLUMNS, 'ele-tracker-welding');
+});
 
 document.getElementById('pouringCuringForm').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -1938,6 +2129,9 @@ document.getElementById('pouringCuringForm').addEventListener('submit', async fu
 document.getElementById('refreshPcBtn').addEventListener('click', async function () {
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadPcEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
+});
+document.getElementById('exportPcBtn').addEventListener('click', function () {
+  exportTableCsv(state.pcEntries, PC_COLUMNS, 'ele-tracker-pouring-curing');
 });
 
 document.getElementById('electricalPackingForm').addEventListener('submit', async function (e) {
@@ -1979,6 +2173,9 @@ document.getElementById('electricalPackingForm').addEventListener('submit', asyn
 document.getElementById('refreshEpBtn').addEventListener('click', async function () {
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadEpEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
+});
+document.getElementById('exportEpBtn').addEventListener('click', function () {
+  exportTableCsv(state.epEntries, EP_COLUMNS, 'ele-tracker-electrical-packing');
 });
 
 document.getElementById('bdvForm').addEventListener('submit', async function (e) {
@@ -2027,6 +2224,9 @@ document.getElementById('refreshBdBtn').addEventListener('click', async function
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadBdEntries(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
 });
+document.getElementById('exportBdBtn').addEventListener('click', function () {
+  exportTableCsv(state.bdEntries, BD_COLUMNS, 'ele-tracker-bdv');
+});
 
 document.getElementById('finalQaForm').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -2055,6 +2255,9 @@ document.getElementById('finalQaForm').addEventListener('submit', async function
 document.getElementById('refreshFqBtn').addEventListener('click', async function () {
   const btn = this; setBtnLoading(btn, 'Refreshing…', true);
   try { await loadFinalQaResults(); toast('Refreshed.'); } catch (err) { toast(err.message, true); } finally { clearBtnLoading(btn, 'Refresh'); }
+});
+document.getElementById('exportFqBtn').addEventListener('click', function () {
+  exportTableCsv(state.finalQaResults, FQ_COLUMNS, 'ele-tracker-final-qa');
 });
 
 if ('serviceWorker' in navigator) {
