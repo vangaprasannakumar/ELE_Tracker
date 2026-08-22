@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELE Tracker</title>
 <meta name="theme-color" content="#f3f0ea" id="metaThemeColor">
-<meta name="app-version" content="1.0.0">
+<meta name="app-version" content="1.1.0">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="https://raw.githubusercontent.com/vangaprasannakumar/Stock_Manager/refs/heads/main/logo/LOGO-192x192.jpg">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/vangaprasannakumar/Stock_Manager/refs/heads/main/logo/LOGO-512x512.jpg">
@@ -168,6 +168,15 @@
   .stat-row .stat-card:nth-child(2)::before { animation-delay: 0.36s; }
   .stat-card .value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; position: relative; z-index: 1; }
   .stat-card .label { font-size: 12px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+  .stat-sub { margin-top: 8px; font-size: 12px; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; position: relative; z-index: 1; }
+  .stat-sub .sub-sep { color: var(--ink-faint); opacity: 0.5; margin: 0 6px; }
+  .stat-sub .sub-ok { color: var(--ok); }
+  .stat-sub .sub-low { color: var(--copper); }
+  .stat-sub .sub-muted { color: var(--ink-faint); }
+  /* The profile block opens Change password, but shouldn't read as a button. */
+  .who-profile { display: flex; align-items: center; gap: 10px; background: none; border: none; padding: 6px 10px; border-radius: var(--radius-sm); color: inherit; font: inherit; cursor: pointer; transition: background 0.2s var(--ease); }
+  .who-profile:hover { background: var(--line-soft); }
+  .who-profile:hover .name { color: var(--copper); }
 
   .section { margin-bottom: 24px; }
   .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -197,6 +206,43 @@
   .pagination .btns { display: flex; gap: 8px; }
   .pagination .btn-ghost { padding: 6px 12px; }
 
+  /* Searchable combobox — looks like the styled selects, but the popup is
+     ours so it can filter as you type. */
+  .combo { position: relative; }
+  .combo-input { width: 100%; padding: 11px 38px 11px 14px !important; }
+  .combo-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 6px; color: var(--ink-faint); display: flex; cursor: pointer; border-radius: 6px; }
+  .combo-toggle:hover { color: var(--copper); }
+  .combo-list {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30;
+    max-height: 240px; overflow-y: auto; padding: 6px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--shadow-lift);
+    animation: slideUpFade 0.15s var(--ease) both;
+  }
+  .combo-option { padding: 9px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .combo-option.is-active { background: var(--copper-soft); color: var(--copper-deep); }
+  .combo-option.is-selected { font-weight: 700; }
+  .combo-option.is-selected::after { content: ' ✓'; color: var(--copper); }
+  .combo-empty { padding: 12px; font-size: 13px; color: var(--ink-faint); text-align: center; }
+  /* Enhanced native selects — the real <select> stays in the DOM (so all
+     existing .value reads and change listeners keep working) but is taken
+     out of the visual and tab flow. */
+  .combo-native { position: absolute !important; opacity: 0 !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: 0 !important; border: 0 !important; pointer-events: none !important; overflow: hidden; }
+  .combo-select { display: inline-block; }
+  .combo-select .combo-input {
+    width: 100%; padding: 11px 38px 11px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    font-family: var(--font-ui); font-size: 13px; font-weight: 600; background-color: var(--panel); color: var(--ink);
+    box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s var(--ease);
+  }
+  .combo-select .combo-input:hover { border-color: var(--copper); }
+  .combo-select .combo-input:focus { border-color: var(--copper); box-shadow: 0 0 0 4px var(--copper-soft), var(--shadow); outline: none; cursor: text; }
+  .combo-select.is-disabled { opacity: 0.6; }
+  .combo-select.is-disabled .combo-input { cursor: not-allowed; }
+  /* Inside form fields the enhanced select should match the other inputs. */
+  .field .combo-select { display: block; }
+  .field .combo-select .combo-input { font-size: 14.5px; font-weight: 500; background-color: var(--line-soft); border-color: transparent; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+  [data-theme="dark"] .field .combo-select .combo-input { border-color: var(--line); }
+  .field .combo-select .combo-input:focus { background-color: var(--panel); }
+  .toolbar .combo-select { flex-shrink: 0; }
   .flgrid { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
   .flgrid th { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; padding: 6px; text-align: center; }
   .flgrid td { padding: 3px; }
@@ -351,8 +397,7 @@
         <svg class="sun-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       </button>
-      <span class="name" id="whoName">—</span>
-      <span id="whoRoleDept">—</span>
+      <button class="who-profile" id="profileBtn" title="Change password"><span class="name" id="whoName">—</span><span id="whoRoleDept">—</span></button>
       <button class="btn-ghost" id="logoutBtn">Sign out</button>
     </div>
   </div>
@@ -404,8 +449,8 @@
     <div class="stage-section" id="sec-dashboard" role="tabpanel">
       <h2 class="stage-heading">Dashboard</h2>
     <div class="stat-row">
-      <div class="stat-card"><div class="value" id="statTotalBatches">—</div><div class="label">Total batches</div></div>
-      <div class="stat-card"><div class="value" id="statInProcess">—</div><div class="label">In process</div></div>
+      <div class="stat-card"><div class="value" id="statTotalBatches">—</div><div class="label">Total batches</div><div class="stat-sub" id="statTotalSub"></div></div>
+      <div class="stat-card"><div class="value" id="statInProcess">—</div><div class="label">In process</div><div class="stat-sub" id="statProcessSub"></div></div>
     </div>
 
       <div class="toolbar"><h2 style="margin:0">Batches</h2><input type="search" id="batchSearchInput" class="search-input" placeholder="Search FG code, master batch no, or date…"><button class="btn-ghost" id="exportBtn">Export</button><button class="btn-ghost" id="refreshBatchesBtn">Refresh</button><span class="freshness-label" id="batchesFreshness"></span></div>
@@ -1020,6 +1065,28 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="passwordOverlay">
+  <div class="modal-panel" style="max-width:420px">
+    <div class="modal-drag-handle" aria-hidden="true"></div>
+    <div class="modal-header">
+      <div><div class="eyebrow">Account</div><h2 style="margin:4px 0 0">Change password</h2><div id="pwdModalUser" style="font-size:12.5px; color:var(--ink-faint)"></div></div>
+      <button class="btn-ghost" id="pwdCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="passwordForm" autocomplete="off">
+        <div class="form-error" id="pwdError"></div>
+        <div class="field"><label for="pwdCurrent">Current password</label><input type="password" id="pwdCurrent" autocomplete="current-password" required></div>
+        <div class="field"><label for="pwdNew">New password</label><input type="password" id="pwdNew" autocomplete="new-password" required></div>
+        <div class="field"><label for="pwdConfirm">Confirm new password</label><input type="password" id="pwdConfirm" autocomplete="new-password" required></div>
+        <div class="ep-footer" style="padding:16px 0 0">
+          <button type="button" class="btn-ghost" id="pwdCancelBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="pwdSaveBtn">Update password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="install-banner hidden" id="installBanner">
   <img src="https://raw.githubusercontent.com/vangaprasannakumar/Stock_Manager/refs/heads/main/logo/LOGO-192x192.jpg" alt="">
   <div class="install-banner-text">
@@ -1099,6 +1166,186 @@ function timeAgo(date) {
   const hrs = Math.floor(mins / 60);
   return hrs + (hrs === 1 ? ' hr ago' : ' hrs ago');
 }
+/* =========================================================================
+   SEARCHABLE SELECTS — upgrades every native <select> in the app to the same
+   type-to-filter combobox used by the item form.
+
+   The native <select> is kept in the DOM as the source of truth and only
+   visually hidden. That way every existing `el.value` read, `el.value = x`
+   write, and 'change' listener keeps working untouched — the combobox is
+   purely a presentation layer over it. Two hooks keep the two in sync:
+     - a MutationObserver, because most of these are repopulated by
+       replacing innerHTML (populateCategoryFilters, populateLedgerFilters…)
+     - a per-element override of the `value` setter, because assigning
+       `select.value` programmatically (e.g. the dashboard drill-down reset)
+       fires no event that could be listened for.
+   ========================================================================= */
+/* =========================================================================
+   CHANGE PASSWORD — routed through stockApi, not eleApi: accounts and
+   sessions live in Stock Management's spreadsheet (this app shares them),
+   so that's the backend that owns the password.
+   ========================================================================= */
+function openPasswordModal() {
+  document.getElementById('pwdModalUser').textContent = state.session ? state.session.username : '';
+  ['pwdCurrent', 'pwdNew', 'pwdConfirm'].forEach(function (id) { document.getElementById(id).value = ''; });
+  document.getElementById('pwdError').textContent = '';
+  document.getElementById('passwordOverlay').classList.remove('hidden');
+  document.getElementById('pwdCurrent').focus();
+}
+function closePasswordModal() { document.getElementById('passwordOverlay').classList.add('hidden'); }
+
+async function handleChangePassword(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('pwdError');
+  const btn = document.getElementById('pwdSaveBtn');
+  const currentPassword = document.getElementById('pwdCurrent').value;
+  const newPassword = document.getElementById('pwdNew').value;
+  const confirm = document.getElementById('pwdConfirm').value;
+
+  errEl.textContent = '';
+  // Checked here as well as server-side: the confirm field is UI-only, so
+  // there's nothing for the backend to compare it against.
+  if (newPassword !== confirm) { errEl.textContent = 'New passwords do not match'; return; }
+  if (newPassword.length < 6) { errEl.textContent = 'New password must be at least 6 characters'; return; }
+
+  setBtnLoading(btn, 'Updating…');
+  try {
+    await stockApi('changePassword', { currentPassword: currentPassword, newPassword: newPassword });
+    closePasswordModal();
+    toast('Password updated.');
+  } catch (err) {
+    errEl.textContent = err.message;
+  } finally { clearBtnLoading(btn, 'Update password'); }
+}
+
+function enhanceSelect_(select) {
+  if (select.dataset.comboReady) return;
+  select.dataset.comboReady = '1';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'combo combo-select';
+  // Layout styles written inline on the select (e.g. flex:1) belong to the
+  // slot it occupies, so move them to the wrapper that now fills that slot.
+  if (select.getAttribute('style')) { wrap.setAttribute('style', select.getAttribute('style')); select.removeAttribute('style'); }
+  select.parentNode.insertBefore(wrap, select);
+  wrap.appendChild(select);
+  select.classList.add('combo-native');
+  select.setAttribute('tabindex', '-1');
+  select.setAttribute('aria-hidden', 'true');
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'combo-input';
+  input.autocomplete = 'off';
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-expanded', 'false');
+  // A `required` control that isn't focusable makes the browser abort submit
+  // with a console error and no visible message. Since the select is now
+  // hidden, move the constraint onto the input the user can actually see.
+  if (select.required) { select.required = false; input.required = true; select.dataset.wasRequired = '1'; }
+  const label = select.id ? document.querySelector('label[for="' + select.id + '"]') : null;
+  if (label) { input.id = select.id + '_combo'; label.setAttribute('for', input.id); }
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'combo-toggle';
+  toggle.tabIndex = -1;
+  toggle.setAttribute('aria-label', 'Show options');
+  toggle.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6.5L8 10.5L12 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const list = document.createElement('div');
+  list.className = 'combo-list hidden';
+  wrap.appendChild(input); wrap.appendChild(toggle); wrap.appendChild(list);
+
+  function optionsOf() {
+    return Array.from(select.options).map(function (o) { return { value: o.value, text: o.textContent }; });
+  }
+  function syncDisplay() {
+    const sel = select.options[select.selectedIndex];
+    input.value = sel ? sel.textContent : '';
+    input.disabled = select.disabled;
+    wrap.classList.toggle('is-disabled', select.disabled);
+    // A disabled select is exempt from validation; mirror that so a disabled
+    // department picker can't block the form.
+    if (select.disabled) input.required = false;
+    else if (select.dataset.wasRequired === '1') input.required = true;
+  }
+  function openList(filter) {
+    if (select.disabled) return;
+    const q = String(filter || '').trim().toLowerCase();
+    const shown = optionsOf().filter(function (o) { return !q || o.text.toLowerCase().indexOf(q) > -1; });
+    list.innerHTML = shown.length === 0
+      ? '<div class="combo-empty">No match</div>'
+      : shown.map(function (o, i) {
+          const isSel = o.value === select.value ? ' is-selected' : '';
+          return '<div class="combo-option' + isSel + (i === 0 ? ' is-active' : '') + '" data-value="' + escapeHtml(o.value) + '">' + escapeHtml(o.text) + '</div>';
+        }).join('');
+    list.classList.remove('hidden');
+    input.setAttribute('aria-expanded', 'true');
+  }
+  function closeList() { list.classList.add('hidden'); input.setAttribute('aria-expanded', 'false'); }
+  function commit(value) {
+    select.value = value;
+    syncDisplay();
+    closeList();
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  input.addEventListener('focus', function () { input.select(); openList(''); });
+  input.addEventListener('input', function () { openList(input.value); });
+  input.addEventListener('blur', function () { setTimeout(function () { if (!wrap.contains(document.activeElement)) { syncDisplay(); closeList(); } }, 0); });
+  toggle.addEventListener('mousedown', function (e) {
+    e.preventDefault();
+    if (list.classList.contains('hidden')) { input.focus(); } else { closeList(); }
+  });
+  list.addEventListener('mousedown', function (e) {
+    const opt = e.target.closest('.combo-option');
+    if (!opt) return;
+    e.preventDefault(); // hold focus so the blur handler doesn't undo this
+    commit(opt.dataset.value);
+  });
+  input.addEventListener('keydown', function (e) {
+    if (list.classList.contains('hidden') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { openList(''); return; }
+    const opts = Array.from(list.querySelectorAll('.combo-option'));
+    if (opts.length === 0) return;
+    let idx = opts.findIndex(function (o) { return o.classList.contains('is-active'); });
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      idx = e.key === 'ArrowDown' ? Math.min(idx + 1, opts.length - 1) : Math.max(idx - 1, 0);
+      opts.forEach(function (o) { o.classList.remove('is-active'); });
+      opts[idx].classList.add('is-active');
+      opts[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      if (idx > -1) { e.preventDefault(); commit(opts[idx].dataset.value); }
+    } else if (e.key === 'Escape') { syncDisplay(); closeList(); }
+  });
+
+  // Repopulation (innerHTML replaced) or a runtime disabled toggle — refresh
+  // the visible text and interactive state.
+  new MutationObserver(syncDisplay).observe(select, { childList: true, attributes: true, attributeFilter: ['disabled'] });
+
+  // form.reset() restores the select's default option without firing an
+  // event or touching the value setter, so the visible text would otherwise
+  // keep showing the last submitted value. Re-sync on the next tick, once
+  // the browser has applied the reset.
+  if (select.form) select.form.addEventListener('reset', function () { setTimeout(syncDisplay, 0); });
+
+  // Programmatic `select.value = x` fires no event, so intercept the setter
+  // on this instance and refresh from it.
+  const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+  Object.defineProperty(select, 'value', {
+    configurable: true,
+    get: function () { return desc.get.call(this); },
+    set: function (v) { desc.set.call(this, v); syncDisplay(); }
+  });
+
+  syncDisplay();
+}
+
+// Applied to every select in the app. Any select marked .no-combo is left
+// as a native picker.
+function enhanceAllSelects_() {
+  document.querySelectorAll('select:not(.no-combo)').forEach(enhanceSelect_);
+}
+
 function fillSelect(id, options, placeholder) {
   const el = document.getElementById(id);
   el.innerHTML = (placeholder ? '<option value="">' + placeholder + '</option>' : '') +
@@ -1872,8 +2119,26 @@ function getFilteredBatches() {
 }
 
 function renderBatches() {
+  const inProcess = state.batches.filter(function (b) { return b.Status === 'In Process'; });
+  const complete = state.batches.filter(function (b) { return b.Status === 'Complete'; });
   document.getElementById('statTotalBatches').textContent = state.batches.length;
-  document.getElementById('statInProcess').textContent = state.batches.filter(function (b) { return b.Status === 'In Process'; }).length;
+  document.getElementById('statInProcess').textContent = inProcess.length;
+
+  // Sub-lines: the totals alone don't say where the work actually is. The
+  // first splits complete vs in-process; the second shows which stages the
+  // in-process batches are sitting at, busiest first.
+  document.getElementById('statTotalSub').innerHTML = state.batches.length === 0 ? '' :
+    '<span class="sub-ok">' + complete.length + ' complete</span><span class="sub-sep">·</span>' +
+    '<span class="sub-low">' + inProcess.length + ' in process</span>';
+
+  const byStage = {};
+  inProcess.forEach(function (b) { const s = b.CurrentStage || '—'; byStage[s] = (byStage[s] || 0) + 1; });
+  const stageParts = Object.keys(byStage)
+    .sort(function (a, b) { return byStage[b] - byStage[a]; })
+    .map(function (s) { return '<span class="sub-muted">' + escapeHtml(s) + ' ' + byStage[s] + '</span>'; });
+  document.getElementById('statProcessSub').innerHTML = stageParts.length === 0
+    ? '<span class="sub-ok">Nothing in progress</span>'
+    : stageParts.join('<span class="sub-sep">·</span>');
 
   const allRows = getFilteredBatches();
   const body = document.getElementById('batchesTableBody');
@@ -2306,6 +2571,11 @@ document.getElementById('loginForm').addEventListener('submit', async function (
 });
 document.getElementById('logoutBtn').addEventListener('click', function () { clearSession(); location.reload(); });
 document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+document.getElementById('profileBtn').addEventListener('click', openPasswordModal);
+document.getElementById('pwdCloseBtn').addEventListener('click', closePasswordModal);
+document.getElementById('pwdCancelBtn').addEventListener('click', closePasswordModal);
+document.getElementById('passwordForm').addEventListener('submit', handleChangePassword);
+document.getElementById('passwordOverlay').addEventListener('click', function (e) { if (e.target.id === 'passwordOverlay') closePasswordModal(); });
 document.getElementById('installBannerActionBtn').addEventListener('click', async function () {
   if (!_deferredInstallPrompt) return;
   _deferredInstallPrompt.prompt();
@@ -2827,6 +3097,11 @@ document.getElementById('refreshFqBtn').addEventListener('click', async function
 document.getElementById('exportFqBtn').addEventListener('click', function () {
   openExportPicker(state.finalQaResults, FQ_COLUMNS, 'ele-tracker-final-qa', 'Final QA');
 });
+
+// Last statement in the script: every change listener above is attached by
+// now, so the change events the enhancer dispatches on selection land where
+// they should.
+enhanceAllSelects_();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
